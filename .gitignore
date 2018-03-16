@@ -1,4 +1,7 @@
 *
+!*.hpp
+!*.cpp
+!*.avm
 !.gitignore
 !src
 !obj
