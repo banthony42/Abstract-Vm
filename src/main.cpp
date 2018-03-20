@@ -37,90 +37,89 @@
  *                                      tab[3].begin()      = exit
  */
 
-typedef std::vector< std::vector<std::string> > vector_vstr;
-typedef std::vector< std::string > vector_str;
+typedef std::vector<std::vector<std::string> > vector_vstr;
+typedef std::vector<std::string> vector_str;
 
 #define DEBUG(str) std::cout << str << std::endl
 
-std::vector<std::string> my_strsplit(std::string str)
-{
-    std::vector<std::string> tab;
-    char *cstr = const_cast<char *>(str.c_str());
-    char *tmp;
+std::vector<std::string> my_strsplit(std::string str) {
+	std::vector<std::string> tab;
+	char *cstr = const_cast<char *>(str.c_str());
+	char *tmp;
 
-    tmp = strtok (cstr," ");
-    while (tmp != NULL)
-    {
-        tab.push_back(tmp);
-        tmp = strtok (NULL, " ");
-    }
-    return (tab);
+	tmp = strtok(cstr, " ");
+	while (tmp != NULL) {
+		tab.push_back(tmp);
+		tmp = strtok(NULL, " ");
+	}
+	return (tab);
 }
 
-vector_vstr *get_script(char *filename)
-{
-    std::ifstream file;
-    std::string buf;
-    vector_vstr *config = new vector_vstr;
+vector_vstr *get_script(char *filename) {
+	std::ifstream file;
+	std::string buf;
+	vector_vstr *config = new vector_vstr;
 
-    file.open(filename, std::ifstream::in);
-    if (file.is_open())
-    {
-        DEBUG("file is open");
-        while (getline(file, buf))
-        {
-            if (!buf.empty())
-                config->push_back(my_strsplit(buf));
-        }
-        file.close();
-        return (config);
-    }
-    return (NULL);
+	file.open(filename, std::ifstream::in);
+	if (file.is_open()) {
+		DEBUG("file is open");
+		while (getline(file, buf)) {
+			if (!buf.empty())
+				config->push_back(my_strsplit(buf));
+		}
+		file.close();
+		return (config);
+	}
+	return (NULL);
 }
 
-vector_vstr *get_script_by_stdin(void)
-{
-    vector_vstr *tab = new vector_vstr;
-    vector_vstr::const_iterator it;
-    vector_str::const_iterator tmp;
-    std::string buf;
+vector_vstr *get_script_by_stdin(void) {
+	vector_vstr *tab = new vector_vstr;
+	vector_vstr::const_iterator it;
+	vector_str::const_iterator tmp;
+	std::string buf;
 
-    while(std::cin.good()) {
-        getline(std::cin, buf);
-        if (!buf.empty())
-            tab->push_back(my_strsplit(buf));
-        if (tab->empty() == false)
-        {
-            it = tab->end() - 1;                                /* Recuperation du dernier vector_str (derniere entree utilisateur) */
-            tmp = find(it->begin(), it->end(), ";;");           /* Recherche de la séquence ";;" (Fin entree utilisateur) */
-            if (tmp != it->end())                               /* Si ";;" est trouvé on stop la saisi */
-                break ;
-        }
-    }
-    return (tab);
+	while (std::cin.good()) {
+		getline(std::cin, buf);
+		if (!buf.empty())
+			tab->push_back(my_strsplit(buf));
+		if (tab->empty() == false) {
+			it = tab->end() -
+				 1;                                /* Recuperation du dernier vector_str (derniere entree utilisateur) */
+			tmp = find(it->begin(), it->end(),
+					   ";;");           /* Recherche de la séquence ";;" (Fin entree utilisateur) */
+			if (tmp != it->end())                               /* Si ";;" est trouvé on stop la saisi */
+				break;
+		}
+	}
+	return (tab);
 }
 
-int main(int ac, char **av)
-{
-    vector_vstr *config = NULL;
-    vector_vstr::const_iterator it;
+int main(int ac, char **av) {
+	vector_vstr *config = NULL;
+	vector_vstr::const_iterator it;
 
-    if (ac > 1) {
-        if (!(config = get_script(av[1])))
-            return (0);
-    }
-    else
-        config = get_script_by_stdin();
+	if (ac > 1) {
+		if (!(config = get_script(av[1])))  /* Recup du programme dans le fichier */
+			return (0);
+	} else
+		config = get_script_by_stdin();     /* Recup du programme via STDIN */
 
-    it = config->begin();
 
-    while (it != config->end()) {
-        if (it->size())
-            std::cout << it->front() << std::endl;
-        it++;
-    }
+	if (config->size() == 0) {              /* Stop si fichier vide */
+		DEBUG("File is empty.");
+		delete config;  /* Leaks ? */
+		return (0);
+	}
 
-    delete config;
+	it = config->begin();
+	while (it != config->end()) {
+		if (it->size())
+			std::cout << it->front() << std::endl;
+		it++;
+	}
 
-    return (0);
+	delete config;
+
+	return (0);
 }
