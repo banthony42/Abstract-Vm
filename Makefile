@@ -6,14 +6,16 @@
 #    By: banthony <banthony@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/01/08 11:31:12 by banthony          #+#    #+#              #
-#    Updated: 2018/03/20 12:32:25 by banthony         ###   ########.fr        #
+#    Updated: 2018/03/22 18:24:17 by banthony         ###   ########.fr        #
 #                                                                              #
 #******************************************************************************#
 
 NAME		= avm	# Binary name
 DIRSRC		= ./src
 DIROBJ		= ./
-SRC			=	main.cpp
+
+SRC			+=	main.cpp
+SRC			+=	AbstractVm.cpp
 
 OBJ			=	$(SRC:.cpp=.o)
 OBJS		=	$(OBJ:%=$(DIROBJ)%)

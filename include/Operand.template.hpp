@@ -14,6 +14,7 @@
 #define OPERAND_TEMPLATE_HPP
 
 #include "IOperand.hpp"
+#include "AbstractVm.hpp"
 
 template<typename T>
 
@@ -21,18 +22,12 @@ class Operand : public IOperand {
 
 public:
 
-	IOperand const * createOperand( eOperandType type, std::string const & value ) const {
+	Operand<T>(Operand<T> const &copy) { *this = copy; }	// Canonical
 
-	}
+	~Operand<T>() { }										// Canonical
 
-	Operand<T>(Operand<T> const &copy) {                // Canonical
-		*this = copy;
-	}
-
-	~Operand<T>() {                                     // Canonical
-	}
-
-	Operand<T> &operator=(Operand<T> const &copy) {     // Canonical
+	Operand<T> &operator=(Operand<T> const &copy)			// Canonical
+	{
 		if (this != &copy)
 		{
 			this->_type = copy.getType();
@@ -41,39 +36,29 @@ public:
 		}
 	}
 
+	int getPrecision(void) const { return this->_precision; }
+	eOperandType getType(void) const { return this->_type; }
+	std::string const &toString(void) const { return this->_str; }
 
-	IOperand const *operator+(IOperand const &rhs) const {
-		if (this->_precision > rhs.getPrecision())
-			;
-	}
-
-
-	int getPrecision(void) const {				        // Precision of the type of the instance
-		return this->_precision;
-	}
-
-	eOperandType getType(void) const {    				// Type of the instance
-		return this->_type;
-	}
-
-	std::string const &toString(void) const {
-		return this->_str;
-	}
+	IOperand const *operator+(IOperand const &rhs) const { return(NULL); }
+	IOperand const *operator-(IOperand const &rhs) const { return(NULL); }
+	IOperand const *operator*(IOperand const &rhs) const { return(NULL); }
+	IOperand const *operator/(IOperand const &rhs) const { return(NULL); }
+	IOperand const *operator%(IOperand const &rhs) const { return(NULL); }
 
 private:
-	Operand<T>();                                       // Canonical
-
-	IOperand const * createInt8( std::string const & value ) const;
-	IOperand const * createInt16( std::string const & value ) const;
-	IOperand const * createInt32( std::string const & value ) const;
-	IOperand const * createFloat( std::string const & value ) const;
-	IOperand const * createDouble( std::string const & value ) const;
-
-	static std::vector<  > *factory;
-
-	std::string _str;
-	int _precision;
-	eOperandType _type;
+	std::string 	_str;
+	int				_precision;
+	eOperandType	_type;
 };
 
 #endif
+
+
+
+//		IOperand const *resultat = NULL;
+//
+//		if (this->_precision > rhs.getPrecision())
+//			resultat = AbstractVm::createOperand(this->_type, this->_str);
+//		else
+//			resultat = AbstractVm::createOperand(rhs.getType(), rhs.toString());

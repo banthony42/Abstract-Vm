@@ -14,6 +14,8 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include "../include/IOperand.hpp"
+#include "../include/AbstractVm.hpp"
 
 /*
  * Chaque ligne du programme correspond a un element d'un tableau de tableau. (vector de vector de string)
@@ -37,12 +39,7 @@
  *                                      tab[3].begin()      = exit
  */
 
-typedef std::vector<std::vector<std::string> > vector_vstr;
-typedef std::vector<std::string> vector_str;
-
-#define DEBUG(str) std::cout << str << std::endl
-
-std::vector<std::string> my_strsplit(std::string str) {
+static std::vector<std::string> my_strsplit(std::string str) {
 	std::vector<std::string> tab;
 	char *cstr = const_cast<char *>(str.c_str());
 	char *tmp;
@@ -55,7 +52,7 @@ std::vector<std::string> my_strsplit(std::string str) {
 	return (tab);
 }
 
-vector_vstr *get_script(char *filename) {
+static vector_vstr *get_script(char *filename) {
 	std::ifstream file;
 	std::string buf;
 	vector_vstr *config = new vector_vstr;
@@ -73,7 +70,7 @@ vector_vstr *get_script(char *filename) {
 	return (NULL);
 }
 
-vector_vstr *get_script_by_stdin(void) {
+static vector_vstr *get_script_by_stdin(void) {
 	vector_vstr *tab = new vector_vstr;
 	vector_vstr::const_iterator it;
 	vector_str::const_iterator tmp;
@@ -119,7 +116,15 @@ int main(int ac, char **av) {
 		it++;
 	}
 
-	delete config;
+	DEBUG("********************");
+	DEBUG("*** Test Factory ***");
+	DEBUG("********************");
+	DEBUG("");
 
+	AbstractVm avm = AbstractVm::getInstance();
+
+	avm.test();
+
+	delete config;
 	return (0);
 }

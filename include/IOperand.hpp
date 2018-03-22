@@ -13,7 +13,14 @@
 #ifndef ABSTRACT_VM_IOPERAND_HPP
 #define ABSTRACT_VM_IOPERAND_HPP
 
+#include <vector>
 #include <string>
+
+#include <iostream>
+#define DEBUG(str) std::cout << str << std::endl
+
+typedef std::vector<std::vector<std::string> > vector_vstr;
+typedef std::vector<std::string> vector_str;
 
 enum eOperandType {
 	INT8, INT16, INT32, FLOAT, DOUBLE, NB_TYPE
