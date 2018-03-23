@@ -6,14 +6,17 @@
 /*   By: banthony <banthony@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/03/20 14:01:30 by banthony          #+#    #+#             */
-/*   Updated: 2018/03/20 14:01:30 by banthony         ###   ########.fr       */
+//   Updated: 2018/03/23 18:06:57 by banthony         ###   ########.fr       //
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <regex>
 #include "../include/AbstractVm.hpp"
 
-/*	INITIALIZATION	*/
+
+/************************/
+/****_INITIALIZATION_****/
+/************************/
 
 AbstractVm *AbstractVm::_singleton = NULL;    /* Initialisation de la singleton a NULL */
 
@@ -30,19 +33,28 @@ const AbstractVm::factory MakeFactory() {
 
 const AbstractVm::factory AbstractVm::_operandCreator = MakeFactory();
 
-/*	FUNCTION	*/
+
+/************************/
+/*******_FUNCTION_*******/
+/************************/
 
 bool AbstractVm::checkSyntax(vector_str line, std::string *message) {
 
-	std::regex n ("^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+\\){1}$");				/* Tellement puissant ... */
-	std::regex z ("^((float|double)\\(){1}[-]?[0-9]+(.){0,1}[0-9]+\\){1}$");	/* Explication des regex en fin de fichiers*/
+	std::regex cmdList ("^(push|pop|dump|assert|add|sub|mul|div|mod|print|exit){1}$");		/* Liste des commandes possible */
+	std::regex integer_value ("^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+\\){1}$");				/* Tellement puissant ... */
+	std::regex decimal_value ("^((float|double)\\(){1}[-]?[0-9]+(.){0,1}[0-9]+\\){1}$");	/* Explication des regex en fin de fichiers*/
+
+	if (std::regex_match(line[0], cmdList) == false) {		/* Test parmis la liste des commandes disponnible	*/
+		*message = "Command not found";				/* Si aucune n'est trouvé, erreur					*/
+		return false;
+	}
 
 	if (line[0] == "push" || line[0] == "assert") {
 
-		if (std::regex_match(line[1], n) == false) {
-			if (std::regex_match(line[1], z) == false) {
+		if (std::regex_match(line[1], integer_value) == false) {		/* Test si VALUE == intXX(XX)				*/
+			if (std::regex_match(line[1], decimal_value) == false) {	/* Test si VALUE == float/double(XX.XX)		*/
 				*message = "Syntax error";
-				return false;
+				return false;											/* Si aucun pattern n'est trouvé, erreur	*/
 			}
 		}
 	}
@@ -110,7 +122,10 @@ IOperand const *AbstractVm::createDouble(std::string const &value) {
 	return nullptr;
 }
 
-/*	CANONICAL FUNCTION	*/
+
+/************************/
+/**_CANONICAL_FUNCTION_**/
+/************************/
 
 AbstractVm::AbstractVm() {
 	return;
@@ -131,7 +146,10 @@ AbstractVm &AbstractVm::operator=(AbstractVm const &copy) {
 	return *this;
 }
 
-/*	ABSTRACT VM EXCEPTION	*/
+
+/***************************/
+/**_ABSTRACT_VM EXCEPTION_**/
+/***************************/
 
 AbstractVm::AbstractVmException::AbstractVmException(std::string message): _errorMessage(message) {
 }
@@ -155,6 +173,9 @@ AbstractVm::AbstractVmException AbstractVm::AbstractVmException::operator=(const
 	return rhs;
 }
 
+/***************************/
+/***_REGEXP EXPLANATIONS_***/
+/***************************/
 
 /*
  * N = ^(int((8)|(16)|(32))\(){1}[-]?[0-9]+\){1}$
