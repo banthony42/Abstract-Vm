@@ -55,17 +55,16 @@ static std::vector<std::string> my_strsplit(std::string str) {
 static vector_vstr *get_script(char *filename) {
 	std::ifstream file;
 	std::string buf;
-	vector_vstr *config = new vector_vstr;
+	vector_vstr *script = new vector_vstr;
 
 	file.open(filename, std::ifstream::in);
 	if (file.is_open()) {
-		DEBUG("file is open");
 		while (getline(file, buf)) {
 			if (!buf.empty())
-				config->push_back(my_strsplit(buf));
+				script->push_back(my_strsplit(buf));
 		}
 		file.close();
-		return (config);
+		return (script);
 	}
 	return (NULL);
 }
@@ -93,26 +92,27 @@ static vector_vstr *get_script_by_stdin(void) {
 }
 
 int main(int ac, char **av) {
-	vector_vstr *config = NULL;
+	vector_vstr *script = NULL;
 	vector_vstr::const_iterator it;
 
 	if (ac > 1) {
-		if (!(config = get_script(av[1])))  /* Recup du programme dans le fichier */
+		if (!(script = get_script(av[1])))  /* Recup du programme dans le fichier */
 			return (0);
 	} else
-		config = get_script_by_stdin();     /* Recup du programme via STDIN */
+		script = get_script_by_stdin();     /* Recup du programme via STDIN */
 
 
-	if (config->size() == 0) {              /* Stop si fichier vide */
+	if (script->size() == 0) {              /* Stop si fichier vide */
 		DEBUG("File is empty.");
-		delete config;  /* Leaks ? */
+		delete script;  /* Leaks ? */
 		return (0);
 	}
 
-	it = config->begin();
-	while (it != config->end()) {
-		if (it->size())
-			std::cout << it->front() << std::endl;
+	it = script->begin();
+	while (it != script->end()) {
+		if (it->size()) {
+			DEBUG(it->front());
+		}
 		it++;
 	}
 
@@ -121,10 +121,14 @@ int main(int ac, char **av) {
 	DEBUG("********************");
 	DEBUG("");
 
-	AbstractVm avm = AbstractVm::getInstance();
+	try {
+		AbstractVm avm = AbstractVm::getInstance();
+		avm.execScript(*script);
+	}
+	catch(std::exception const &e) {
+		std::cerr << e.what() << std::endl;
+	}
 
-	avm.test();
-
-	delete config;
+	delete script;
 	return (0);
 }

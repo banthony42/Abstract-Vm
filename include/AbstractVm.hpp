@@ -16,27 +16,47 @@
 #include <map>
 #include "IOperand.hpp"
 
+#define ERROR(i) std::cerr << "Line " << i << ": Error : ";
+
 class AbstractVm {
 
 public:
-
-	typedef std::vector<const IOperand  *(*)(std::string const &)> factory;
-
 	AbstractVm(AbstractVm const &copy);				// Canonical
 	~AbstractVm();									// Canonical
 	AbstractVm &operator=(AbstractVm const &copy);	// Canonical
 
 	static AbstractVm getInstance(void);
-	void execCommand(vector_str line);
-	IOperand const * createOperand( eOperandType type, std::string const & value ) const;
+	void execScript(vector_vstr const script);
 
-	void test(void);
+	typedef std::vector < const IOperand *(*)(std::string const &) >	factory;
+	typedef std::map < std::string, void(AbstractVm::*)(IOperand *) >	mapped_command;
+
+	static IOperand const * createOperand( eOperandType type, std::string const & value );
+	static IOperand const * createInt8( std::string const & value );
+	static IOperand const * createInt16( std::string const & value );
+	static IOperand const * createInt32( std::string const & value );
+	static IOperand const * createFloat( std::string const & value );
+	static IOperand const * createDouble( std::string const & value );
+
+	class AbstractVmException : public std::exception {
+
+	public:
+		AbstractVmException();
+		AbstractVmException(std::string message);
+		AbstractVmException(AbstractVmException const &copy);
+		virtual ~AbstractVmException() throw();
+		virtual const char *what() const throw();
+
+	private:
+		std::string const _errorMessage;
+		AbstractVmException operator=(AbstractVmException const &rhs);
+	};
 
 private:
-	static factory											_operatorCreator;		// Factory
-	std::map<std::string, void(AbstractVm::*)(IOperand *)>	_commandList;			// Association d'une string a une commande
-	std::vector<IOperand*>									_stack;					// Stack
-	static AbstractVm *										_singleton;				// Gestion instance unique
+	static const factory	_operandCreator;		// Factory
+	const mapped_command	_commandList;			// Association d'une string a une commande
+	std::vector<IOperand*>	_stack;					// Stack
+	static AbstractVm *		_singleton;				// Gestion instance unique
 
 	AbstractVm();	// Canonical
 
@@ -52,14 +72,7 @@ private:
 	void print(IOperand *operand);
 	void exit(IOperand *operand);
 
-	bool checkSyntax(vector_str line);
-
-	static IOperand const * createInt8( std::string const & value ) ;
-	IOperand const * createInt16( std::string const & value ) const;
-	IOperand const * createInt32( std::string const & value ) const;
-	IOperand const * createFloat( std::string const & value ) const;
-	IOperand const * createDouble( std::string const & value ) const;
+	bool checkSyntax(vector_str line, std::string *message);
 };
-
 
 #endif
