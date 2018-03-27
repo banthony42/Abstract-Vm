@@ -18,7 +18,7 @@
 /****_INITIALIZATION_****/
 /************************/
 
-static const AbstractVm::factory makeFactory() {
+const AbstractVm::factory AbstractVm::makeFactory() {
 	AbstractVm::factory f;
 
 	f.push_back(&AbstractVm::createInt8);
@@ -49,7 +49,7 @@ const AbstractVm::mapped_command AbstractVm::createMap() {
 
 AbstractVm *AbstractVm::_singleton = NULL;        /* Initialisation de la singleton a NULL */
 
-const AbstractVm::factory AbstractVm::_operandCreator = makeFactory();
+const AbstractVm::factory AbstractVm::_operandCreator = AbstractVm::makeFactory();
 
 const AbstractVm::mapped_command AbstractVm::_commandList = AbstractVm::createMap();
 
@@ -59,9 +59,9 @@ const AbstractVm::mapped_command AbstractVm::_commandList = AbstractVm::createMa
 
 bool AbstractVm::parsing(vector_str line, std::string *message) {
 
-	std::regex cmdList("^(push|pop|dump|assert|add|sub|mul|div|mod|print|exit){1}$");        /* Liste des commandes possible */
-	std::regex integer_value("^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+\\){1}$");                /* Tellement puissant ... */
-	std::regex decimal_value("^((float|double)\\(){1}[-]?[0-9]+(.){0,1}[0-9]+\\){1}$");    /* Explication des regex en fin de fichiers*/
+	std::regex cmdList(REGEX_CMDLIST);
+	std::regex integer_value(REGEX_INTVALUE);
+	std::regex decimal_value(REGEX_DECIMALVALUE);
 
 	if (line[0][0] == ';')    /* Si commentaire on passe */
 		return true;
@@ -118,24 +118,44 @@ void AbstractVm::execScript(vector_vstr const script) {
 	int i = 1;
 	while (it != script.end()) {
 
-		if ((*it)[0][0] != ';') {
-
-			/* Recup de la fonction associé a la commande, qui est sous forme de string */
+		if ((*it)[0][0] != ';') {	/* Si la ligne n'est pas commentée on peut la traiter */
+									/* Recup de la fonction associé a la commande, a partir de sa string */
 			AbstractVm::cmdFuncPtr funcPointer = AbstractVm::_commandList.at((*it)[0]);
 
-			if ((*it).size() > 1) {
+			if ((*it).size() > 1) {				/* Si la ligne contient plus de un mot 				*/
+				if ((*it)[1][0] != ';') {		/* Et que le second mot n'est pas un commentaire 	*/
+												/* alors on doit traiter un push ou un assert		*/
+					std::regex int8(REGEX_INT8);
+					std::regex int16(REGEX_INT16);
+					std::regex int32(REGEX_INT32);
+					std::regex decimal_float(REGEX_FLOAT);
+					std::regex decimal_double(REGEX_DOUBLE);
+					IOperand const *op = NULL;
 
-				if ((*it)[1][0] != ';') {        /* La commande est un push ou un assert il faut creer une operand */
+					if (std::regex_match((*it)[1], int8) == true)
+						op = AbstractVm::createOperand(INT8, (*it)[1]);
 
-					// create operand
-					DEBUG(":push ou assert:");
-					(this->*funcPointer)(NULL);
+					if (std::regex_match((*it)[1], int16) == true)
+						op = AbstractVm::createOperand(INT16, (*it)[1]);
+
+					if (std::regex_match((*it)[1], int32) == true)
+						op = AbstractVm::createOperand(INT32, (*it)[1]);
+
+					if (std::regex_match((*it)[1], decimal_float) == true)
+						op = AbstractVm::createOperand(FLOAT, (*it)[1]);
+
+					if (std::regex_match((*it)[1], decimal_double) == true)
+						op = AbstractVm::createOperand(DOUBLE, (*it)[1]);
+
+					(this->*funcPointer)(op);
 				}
-
-				/* Sinon la commande ne prend aucun parametre et est suivi d'un commentaire, ex: "add ;ajout"	*/
-			} else
+				else						/* si le 2eme mot est un commentaire, alors on traite une commande simple */
+					(this->*funcPointer)(NULL);
+			}
+			else							/* si la ligne ne comporte qu'un mot, alors on traite une commande simple */
 				(this->*funcPointer)(NULL);
 		}
+
 		i++;
 		it++;
 	}
@@ -152,58 +172,58 @@ IOperand const *AbstractVm::createOperand(eOperandType type, std::string const &
 	return nullptr;
 }
 
-void AbstractVm::push(IOperand *operand) {
+void AbstractVm::push(IOperand const *operand) {
 	DEBUG("----PUSH CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::pop(IOperand *operand) {
+void AbstractVm::pop(IOperand const *operand) {
 	DEBUG("----POP CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::dump(IOperand *operand) {
+void AbstractVm::dump(IOperand const *operand) {
 	DEBUG("----DUMP CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::assert(IOperand *operand) {
+void AbstractVm::assert(IOperand const *operand) {
 	DEBUG("----ASSERT CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::add(IOperand *operand) {
+void AbstractVm::add(IOperand const *operand) {
 	DEBUG("----ADD CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::sub(IOperand *operand) {
+void AbstractVm::sub(IOperand const *operand) {
 	DEBUG("----SUB CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::mul(IOperand *operand) {
+void AbstractVm::mul(IOperand const *operand) {
 	DEBUG("----MUL CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::div(IOperand *operand) {
+void AbstractVm::div(IOperand const *operand) {
 	DEBUG("----DIV CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::mod(IOperand *operand) {
+void AbstractVm::mod(IOperand const *operand) {
 	DEBUG("----MOD CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::print(IOperand *operand) {
-	DEBUG("----PRI CODE-----");
+void AbstractVm::print(IOperand const *operand) {
+	DEBUG("----PRINT CODE-----");
 	(void) operand;
 }
 
-void AbstractVm::exit(IOperand *operand) {
-	DEBUG("----EXI CODE-----");
+void AbstractVm::exit(IOperand const *operand) {
+	DEBUG("----EXIT CODE-----");
 	(void) operand;
 }
 
@@ -287,26 +307,3 @@ AbstractVm::AbstractVmException::~AbstractVmException() throw() {
 AbstractVm::AbstractVmException AbstractVm::AbstractVmException::operator=(const AbstractVm::AbstractVmException &rhs) {
 	return rhs;
 }
-
-/***************************/
-/***_REGEXP EXPLANATIONS_***/
-/***************************/
-
-/*
- * N = ^(int((8)|(16)|(32))\(){1}[-]?[0-9]+\){1}$
- *
- * ^ oblige que le pattern soit au debut de la string
- *
- * Groupe 1: ( int ((8) | (16) | (32)) \( ){1}
- * Oblige a trouver au moins une fois : "int8(" ou "int16(" ou "int32("
- *
- * Groupe 2: [-]?[0-9]+
- * [-] Le caractere '-'
- * ? Autorise la sequence precedente a etre presente une ou zero fois
- * [0-9] Autorise un chiffre de 0 a 9 inclus
- * + Autorise a repeter la sequence precedente une ou plusieurs fois
- *
- * \) Le caractere ')'
- * {1} La sequence precedente doit etre presente une fois
- *
- */

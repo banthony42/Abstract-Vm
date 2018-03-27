@@ -114,7 +114,16 @@ int main(int ac, char **av) {
 
 	try {
 		AbstractVm *avm = AbstractVm::getInstance();
+
+		DEBUG("********************");
+		DEBUG("*** Check Script ***");
+		DEBUG("********************");
 		avm->checkSyntax(*script);
+		DEBUG("======> OK! <=======");
+
+		DEBUG("*******************");
+		DEBUG("*** Exec Script ***");
+		DEBUG("*******************\n");
 		avm->execScript(*script);
 	}
 	catch(std::exception const &e) {
