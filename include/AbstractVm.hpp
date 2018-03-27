@@ -25,11 +25,15 @@ public:
 	~AbstractVm();									// Canonical
 	AbstractVm &operator=(AbstractVm const &copy);	// Canonical
 
-	static AbstractVm getInstance(void);
+	static AbstractVm *getInstance(void);
 	void execScript(vector_vstr const script);
+	void checkSyntax(vector_vstr const script);
 
 	typedef std::vector < const IOperand *(*)(std::string const &) >	factory;
-	typedef std::map < std::string, void(AbstractVm::*)(IOperand *) >	mapped_command;
+	typedef void(AbstractVm::*cmdFuncPtr)(IOperand *);
+	typedef std::map < std::string, cmdFuncPtr >	mapped_command;
+
+	static const mapped_command createMap();
 
 	static IOperand const * createOperand( eOperandType type, std::string const & value );
 	static IOperand const * createInt8( std::string const & value );
@@ -53,10 +57,10 @@ public:
 	};
 
 private:
-	static const factory	_operandCreator;		// Factory
-	const mapped_command	_commandList;			// Association d'une string a une commande
-	std::vector<IOperand*>	_stack;					// Stack
-	static AbstractVm *		_singleton;				// Gestion instance unique
+	static const factory		_operandCreator;		// Factory
+	static const mapped_command	_commandList;			// Association d'une string a une commande
+	std::vector<IOperand*>		_stack;					// Stack
+	static AbstractVm *			_singleton;				// Gestion instance unique
 
 	AbstractVm();	// Canonical
 
@@ -72,7 +76,7 @@ private:
 	void print(IOperand *operand);
 	void exit(IOperand *operand);
 
-	bool checkSyntax(vector_str line, std::string *message);
+	bool parsing(vector_str line, std::string *message);
 };
 
 #endif

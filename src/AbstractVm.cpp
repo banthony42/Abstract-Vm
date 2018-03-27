@@ -18,9 +18,7 @@
 /****_INITIALIZATION_****/
 /************************/
 
-AbstractVm *AbstractVm::_singleton = NULL;    /* Initialisation de la singleton a NULL */
-
-const AbstractVm::factory MakeFactory() {
+static const AbstractVm::factory makeFactory() {
 	AbstractVm::factory f;
 
 	f.push_back(&AbstractVm::createInt8);
@@ -31,48 +29,81 @@ const AbstractVm::factory MakeFactory() {
 	return f;
 }
 
-const AbstractVm::factory AbstractVm::_operandCreator = MakeFactory();
+const AbstractVm::mapped_command AbstractVm::createMap() {
+	AbstractVm::mapped_command m;
 
+	m["push"] = &AbstractVm::push;
+	m["pop"] = &AbstractVm::pop;
+	m["dump"] = &AbstractVm::dump;
+	m["assert"] = &AbstractVm::assert;
+	m["add"] = &AbstractVm::add;
+	m["sub"] = &AbstractVm::sub;
+	m["mul"] = &AbstractVm::mul;
+	m["div"] = &AbstractVm::div;
+	m["mod"] = &AbstractVm::mod;
+	m["print"] = &AbstractVm::print;
+	m["exit"] = &AbstractVm::exit;
+
+	return m;
+}
+
+AbstractVm *AbstractVm::_singleton = NULL;        /* Initialisation de la singleton a NULL */
+
+const AbstractVm::factory AbstractVm::_operandCreator = makeFactory();
+
+const AbstractVm::mapped_command AbstractVm::_commandList = AbstractVm::createMap();
 
 /************************/
 /*******_FUNCTION_*******/
 /************************/
 
-bool AbstractVm::checkSyntax(vector_str line, std::string *message) {
+bool AbstractVm::parsing(vector_str line, std::string *message) {
 
-	std::regex cmdList ("^(push|pop|dump|assert|add|sub|mul|div|mod|print|exit){1}$");		/* Liste des commandes possible */
-	std::regex integer_value ("^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+\\){1}$");				/* Tellement puissant ... */
-	std::regex decimal_value ("^((float|double)\\(){1}[-]?[0-9]+(.){0,1}[0-9]+\\){1}$");	/* Explication des regex en fin de fichiers*/
+	std::regex cmdList("^(push|pop|dump|assert|add|sub|mul|div|mod|print|exit){1}$");        /* Liste des commandes possible */
+	std::regex integer_value("^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+\\){1}$");                /* Tellement puissant ... */
+	std::regex decimal_value("^((float|double)\\(){1}[-]?[0-9]+(.){0,1}[0-9]+\\){1}$");    /* Explication des regex en fin de fichiers*/
 
-	if (std::regex_match(line[0], cmdList) == false) {		/* Test parmis la liste des commandes disponnible	*/
-		*message = "Command not found";				/* Si aucune n'est trouvé, erreur					*/
+	if (line[0][0] == ';')    /* Si commentaire on passe */
+		return true;
+
+	if (std::regex_match(line[0], cmdList) == false) {        /* Test parmis la liste des commandes disponnible	*/
+		*message = "Command not found";                        /* Si aucune n'est trouvé, erreur					*/
 		return false;
 	}
 
-	if (line[0] == "push" || line[0] == "assert") {
+	if (line[0] == "push" || line[0] == "assert") {    /* Commandes qui necessitent un argument en parametre */
 
-		if (std::regex_match(line[1], integer_value) == false) {		/* Test si VALUE == intXX(XX)				*/
-			if (std::regex_match(line[1], decimal_value) == false) {	/* Test si VALUE == float/double(XX.XX)		*/
+		if (std::regex_match(line[1], integer_value) == false) {        /* Test si VALUE == intXX(XX)				*/
+
+			if (std::regex_match(line[1], decimal_value) == false) {    /* Test si VALUE == float/double(XX.XX)		*/
 				*message = "Syntax error";
-				return false;											/* Si aucun pattern n'est trouvé, erreur	*/
+				return false;                                            /* Si aucun pattern n'est trouvé, erreur	*/
 			}
+		}
+
+		if (line.size() > 2 && line[2][0] != ';') {        /* Si la ligne comporte plusieurs mots et que le troisieme ne commence pas par ; */
+			*message = "Too many argument";                /* un commentaires, alors erreur. */
+			return false;
+		}
+	} else {    /* Commandes qui n'ont aucun parametre */
+
+		if (line.size() > 1 && line[1][0] != ';') {        /* Si la ligne comporte plusieurs mots et que le second ne commence pas par ; */
+			*message = "Too many argument";                /* un commentaires, alors erreur. */
+			return false;
 		}
 	}
 
-	if (line.size() > 2 && line[2][0] != ';') {
-		*message = "Too many argument";
-		return false;
-	}
 	return true;
 }
 
-void AbstractVm::execScript(vector_vstr const script) {
+void AbstractVm::checkSyntax(vector_vstr const script) {
+
 	vector_vstr::const_iterator it = script.begin();
 	std::string message;
 	int i = 1;
 	while (it != script.end()) {
 
-		if (this->checkSyntax(*it, &message) == false) {
+		if (this->parsing(*it, &message) == false) {
 			ERROR(i);
 			throw AbstractVm::AbstractVmException(message);
 		}
@@ -81,15 +112,99 @@ void AbstractVm::execScript(vector_vstr const script) {
 	}
 }
 
-AbstractVm AbstractVm::getInstance(void) {
+void AbstractVm::execScript(vector_vstr const script) {
+
+	vector_vstr::const_iterator it = script.begin();
+	int i = 1;
+	while (it != script.end()) {
+
+		if ((*it)[0][0] != ';') {
+
+			/* Recup de la fonction associé a la commande, qui est sous forme de string */
+			AbstractVm::cmdFuncPtr funcPointer = AbstractVm::_commandList.at((*it)[0]);
+
+			if ((*it).size() > 1) {
+
+				if ((*it)[1][0] != ';') {        /* La commande est un push ou un assert il faut creer une operand */
+
+					// create operand
+					DEBUG(":push ou assert:");
+					(this->*funcPointer)(NULL);
+				}
+
+				/* Sinon la commande ne prend aucun parametre et est suivi d'un commentaire, ex: "add ;ajout"	*/
+			} else
+				(this->*funcPointer)(NULL);
+		}
+		i++;
+		it++;
+	}
+}
+
+AbstractVm *AbstractVm::getInstance(void) {
 	if (_singleton == NULL)
 		_singleton = new AbstractVm();
-	return *(_singleton);
+	return (_singleton);
 }
 
 IOperand const *AbstractVm::createOperand(eOperandType type, std::string const &value) {
 	(*(AbstractVm::_operandCreator[type]))(value);
 	return nullptr;
+}
+
+void AbstractVm::push(IOperand *operand) {
+	DEBUG("----PUSH CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::pop(IOperand *operand) {
+	DEBUG("----POP CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::dump(IOperand *operand) {
+	DEBUG("----DUMP CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::assert(IOperand *operand) {
+	DEBUG("----ASSERT CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::add(IOperand *operand) {
+	DEBUG("----ADD CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::sub(IOperand *operand) {
+	DEBUG("----SUB CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::mul(IOperand *operand) {
+	DEBUG("----MUL CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::div(IOperand *operand) {
+	DEBUG("----DIV CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::mod(IOperand *operand) {
+	DEBUG("----MOD CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::print(IOperand *operand) {
+	DEBUG("----PRI CODE-----");
+	(void) operand;
+}
+
+void AbstractVm::exit(IOperand *operand) {
+	DEBUG("----EXI CODE-----");
+	(void) operand;
 }
 
 IOperand const *AbstractVm::createInt8(std::string const &value) {
@@ -128,6 +243,7 @@ IOperand const *AbstractVm::createDouble(std::string const &value) {
 /************************/
 
 AbstractVm::AbstractVm() {
+
 	return;
 }
 
@@ -146,19 +262,18 @@ AbstractVm &AbstractVm::operator=(AbstractVm const &copy) {
 	return *this;
 }
 
-
 /***************************/
 /**_ABSTRACT_VM EXCEPTION_**/
 /***************************/
 
-AbstractVm::AbstractVmException::AbstractVmException(std::string message): _errorMessage(message) {
+AbstractVm::AbstractVmException::AbstractVmException(std::string message) : _errorMessage(message) {
 }
 
 const char *AbstractVm::AbstractVmException::what() const throw() {
 	return this->_errorMessage.c_str();
 }
 
-AbstractVm::AbstractVmException::AbstractVmException(): _errorMessage("AbstractVm error:") {
+AbstractVm::AbstractVmException::AbstractVmException() : _errorMessage("AbstractVm error:") {
 }
 
 AbstractVm::AbstractVmException::AbstractVmException(const AbstractVm::AbstractVmException &copy) {

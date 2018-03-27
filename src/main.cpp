@@ -44,10 +44,10 @@ static std::vector<std::string> my_strsplit(std::string str) {
 	char *cstr = const_cast<char *>(str.c_str());
 	char *tmp;
 
-	tmp = strtok(cstr, " ");
+	tmp = strtok(cstr, " \t");
 	while (tmp != NULL) {
 		tab.push_back(tmp);
-		tmp = strtok(NULL, " ");
+		tmp = strtok(NULL, " \t");
 	}
 	return (tab);
 }
@@ -104,26 +104,18 @@ int main(int ac, char **av) {
 
 	if (script->size() == 0) {              /* Stop si fichier vide */
 		DEBUG("File is empty.");
-		delete script;  /* Leaks ? */
+		delete script;  /* Leaks ? (delete aussi le contenu ? ) */
 		return (0);
 	}
 
-	it = script->begin();
-	while (it != script->end()) {
-		if (it->size()) {
-			DEBUG(it->front());
-		}
-		it++;
-	}
-
-	DEBUG("********************");
-	DEBUG("*** Test Factory ***");
-	DEBUG("********************");
-	DEBUG("");
+	DEBUG("*******************");
+	DEBUG("*** Abstract Vm ***");
+	DEBUG("*******************\n");
 
 	try {
-		AbstractVm avm = AbstractVm::getInstance();
-		avm.execScript(*script);
+		AbstractVm *avm = AbstractVm::getInstance();
+		avm->checkSyntax(*script);
+		avm->execScript(*script);
 	}
 	catch(std::exception const &e) {
 		std::cerr << e.what() << std::endl;
