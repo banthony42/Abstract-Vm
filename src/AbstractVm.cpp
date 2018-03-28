@@ -49,10 +49,6 @@ const AbstractVm::mapped_command AbstractVm::createMap() {
 
 AbstractVm *AbstractVm::_singleton = NULL;        /* Initialisation de la singleton a NULL */
 
-const AbstractVm::factory AbstractVm::_operandCreator = AbstractVm::makeFactory();
-
-const AbstractVm::mapped_command AbstractVm::_commandList = AbstractVm::createMap();
-
 /************************/
 /*******_FUNCTION_*******/
 /************************/
@@ -168,7 +164,70 @@ AbstractVm *AbstractVm::getInstance(void) {
 }
 
 IOperand const *AbstractVm::createOperand(eOperandType type, std::string const &value) {
-	(*(AbstractVm::_operandCreator[type]))(value);
+
+	AbstractVm::createFuncPtr  funcPointer = this->_operandCreator[type];
+
+	std::smatch cm;
+	std::regex e(REGEX_INTEGER);
+	unsigned long n_match = 2;
+
+	if (type == FLOAT || type == DOUBLE) {
+		e = REGEX_DECIMAL;
+		n_match = 0;
+	}
+
+	if (std::regex_search(value.begin(),value.end(), cm, e) == false)
+		throw  AbstractVmException("No match, during the value extraction.");
+
+	/*
+	std::cout << "the matches were: ";
+	for (unsigned i=0; i<cm.size(); ++i) {
+		std::cout << "[" << cm[i] << "] ";
+	}
+	*/
+
+	if (n_match && cm.size() <= n_match)
+		throw  AbstractVmException("Not enough match");
+
+	return 	dynamic_cast<IOperand const *>((this->*funcPointer)(cm[n_match]));
+}
+
+IOperand const *AbstractVm::createInt8(std::string const &value) {
+	DEBUGVAR("int8: ", value);
+
+	int nb = std::stoi(value);
+	if (nb < INT8_MIN || nb > INT8_MAX)
+		throw AbstractVm::AbstractVmException("Out");
+	//creation d'un operand, IOperand *op = new Operand<char>(INT8, value);
+	//return de l'Operand
+	return nullptr;
+}
+
+IOperand const *AbstractVm::createInt16(std::string const &value) {
+	(void) value;
+	DEBUGVAR("int16: ", value);
+	//extraction de la valeur dans un short
+	return nullptr;
+}
+
+IOperand const *AbstractVm::createInt32(std::string const &value) {
+	(void) value;
+	DEBUGVAR("int32: ", value);
+	//extraction de la valeur dans un int
+	return nullptr;
+}
+
+IOperand const *AbstractVm::createFloat(std::string const &value) {
+	(void) value;
+	DEBUGVAR("float: ", value);
+	//extraction de la valeur dans un float
+	return nullptr;
+}
+
+IOperand const *AbstractVm::createDouble(std::string const &value) {
+	(void) value;
+	DEBUGVAR("double: ", value);
+	//extraction de la valeur dans un double
 	return nullptr;
 }
 
@@ -227,43 +286,11 @@ void AbstractVm::exit(IOperand const *operand) {
 	(void) operand;
 }
 
-IOperand const *AbstractVm::createInt8(std::string const &value) {
-	(void) value;
-	DEBUG("int8");
-	return nullptr;
-}
-
-IOperand const *AbstractVm::createInt16(std::string const &value) {
-	(void) value;
-	DEBUG("int16");
-	return nullptr;
-}
-
-IOperand const *AbstractVm::createInt32(std::string const &value) {
-	(void) value;
-	DEBUG("int32");
-	return nullptr;
-}
-
-IOperand const *AbstractVm::createFloat(std::string const &value) {
-	(void) value;
-	DEBUG("float");
-	return nullptr;
-}
-
-IOperand const *AbstractVm::createDouble(std::string const &value) {
-	(void) value;
-	DEBUG("double");
-	return nullptr;
-}
-
-
 /************************/
 /**_CANONICAL_FUNCTION_**/
 /************************/
 
-AbstractVm::AbstractVm() {
-
+AbstractVm::AbstractVm(): _operandCreator(this->makeFactory()), _commandList(this->createMap()) {
 	return;
 }
 

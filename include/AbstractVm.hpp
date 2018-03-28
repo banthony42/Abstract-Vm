@@ -18,6 +18,9 @@
 
 /* Explication breve des regex en fin de fichier */
 
+#define REGEX_INTEGER "([-]?\\d+).*?([-]?\\d+)"
+#define REGEX_DECIMAL "[-]?\\d+[.]\\d+"
+
 #define REGEX_CMDLIST "^(push|pop|dump|assert|add|sub|mul|div|mod|print|exit){1}$"	/* Liste des commandes disponible */
 #define REGEX_INTVALUE "^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+[\\)]$"				/* Definit la grammaire d'un parametre de type entier */
 #define REGEX_DECIMALVALUE "^((float|double)\\(){1}([-]?[0-9]+[.][0-9]+)[\\)]$"		/* Definit la grammaire d'un parametre de type decimal */
@@ -30,6 +33,9 @@
 
 #define ERROR(i) std::cerr << "Line " << i << ": Error : ";
 
+#define DEBUGVAR(str, var) std::cout << str << var << std::endl
+#define DEBUG(str) std::cout << str << std::endl
+
 class AbstractVm {
 
 public:
@@ -37,15 +43,14 @@ public:
 	~AbstractVm();									// Canonical
 	AbstractVm &operator=(AbstractVm const &copy);	// Canonical
 
-	typedef std::vector < IOperand const *(*)(std::string const &) >	factory;
+	typedef IOperand const *(AbstractVm::*createFuncPtr)(std::string const &);
+	typedef std::vector < createFuncPtr >	factory;
+
 	typedef void(AbstractVm::*cmdFuncPtr)(IOperand const *);
 	typedef std::map < std::string, cmdFuncPtr >	mapped_command;
 
-	static const mapped_command createMap();
-	static const factory makeFactory();
-
 	static AbstractVm *getInstance(void);
-	static IOperand const * createOperand( eOperandType type, std::string const & value );
+	IOperand const * createOperand( eOperandType type, std::string const & value );
 
 	void execScript(vector_vstr const script);
 	void checkSyntax(vector_vstr const script);
@@ -69,20 +74,22 @@ public:
 	};
 
 private:
-	static const factory		_operandCreator;		// Factory
-	static const mapped_command	_commandList;			// Association d'une string a une commande
-	std::vector<IOperand*>		_stack;					// Stack
-	static AbstractVm *			_singleton;				// Gestion instance unique
+	const factory			_operandCreator;		// Factory
+	const mapped_command	_commandList;			// Association d'une string a une commande
+	std::vector<IOperand*>	_stack;					// Stack
+	static AbstractVm *		_singleton;				// Gestion instance unique
 
 	AbstractVm();										// Canonical
+	const mapped_command createMap();
+	const factory makeFactory();
 
 	bool parsing(vector_str line, std::string *message);
 
-	static IOperand const * createInt8( std::string const & value );
-	static IOperand const * createInt16( std::string const & value );
-	static IOperand const * createInt32( std::string const & value );
-	static IOperand const * createFloat( std::string const & value );
-	static IOperand const * createDouble( std::string const & value );
+	IOperand const * createInt8( std::string const & value );
+	IOperand const * createInt16( std::string const & value );
+	IOperand const * createInt32( std::string const & value );
+	IOperand const * createFloat( std::string const & value );
+	IOperand const * createDouble( std::string const & value );
 
 	void push(IOperand const *operand);
 	void pop(IOperand const *operand);

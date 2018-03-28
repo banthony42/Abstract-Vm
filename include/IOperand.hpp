@@ -17,7 +17,6 @@
 #include <string>
 
 #include <iostream>
-#define DEBUG(str) std::cout << str << std::endl
 
 typedef std::vector<std::vector<std::string> > vector_vstr;
 typedef std::vector<std::string> vector_str;

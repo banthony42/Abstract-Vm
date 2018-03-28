@@ -20,11 +20,23 @@ template<typename T>
 
 class Operand : public IOperand {
 
+private:
+	std::string		_str;
+	int				_precision;
+	eOperandType	_type;
+	T				_value;
+
+	Operand<T>() {	} // Canonical
+
 public:
+
+/****************************/
+/****_CANONICAL_FUNCTION_****/
+/****************************/
 
 	Operand<T>(Operand<T> const &copy) { *this = copy; }	// Canonical
 
-	~Operand<T>() { }										// Canonical
+	~Operand<T>() { } 										// Canonical
 
 	Operand<T> &operator=(Operand<T> const &copy)			// Canonical
 	{
@@ -36,9 +48,29 @@ public:
 		}
 	}
 
-	int getPrecision(void) const { return this->_precision; }
-	eOperandType getType(void) const { return this->_type; }
-	std::string const &toString(void) const { return this->_str; }
+/************************/
+/*******_FUNCTION_*******/
+/************************/
+
+	Operand<T>(eOperandType type, std::string const &value): _type(type), _str(value) {
+		std::cout << "New Operand is created, type:" << type << ", value:" << value << std::endl;
+	}
+
+	int getPrecision(void) const {
+		return this->_precision;
+	}
+
+	eOperandType getType(void) const {
+		return this->_type;
+	}
+
+	std::string const &toString(void) const {
+		return this->_str;
+	}
+
+/************************/
+/*******_OPERATOR_*******/
+/************************/
 
 	IOperand const *operator+(IOperand const &rhs) const { return(NULL); }
 	IOperand const *operator-(IOperand const &rhs) const { return(NULL); }
@@ -46,10 +78,6 @@ public:
 	IOperand const *operator/(IOperand const &rhs) const { return(NULL); }
 	IOperand const *operator%(IOperand const &rhs) const { return(NULL); }
 
-private:
-	std::string 	_str;
-	int				_precision;
-	eOperandType	_type;
 };
 
 #endif
