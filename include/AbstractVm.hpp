@@ -18,13 +18,16 @@
 
 /* Explication breve des regex en fin de fichier */
 
+/* Utilisé pour la recuperation de la valeur, ex:"double(42.42)" -> 42.42 */
 #define REGEX_INTEGER "([-]?\\d+).*?([-]?\\d+)"
 #define REGEX_DECIMAL "[-]?\\d+[.]\\d+"
 
+/* Utilisé pour verifier la syntaxe */
 #define REGEX_CMDLIST "^(push|pop|dump|assert|add|sub|mul|div|mod|print|exit){1}$"	/* Liste des commandes disponible */
 #define REGEX_INTVALUE "^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+[\\)]$"				/* Definit la grammaire d'un parametre de type entier */
 #define REGEX_DECIMALVALUE "^((float|double)\\(){1}([-]?[0-9]+[.][0-9]+)[\\)]$"		/* Definit la grammaire d'un parametre de type decimal */
 
+/* Utilisé pour savoir avec quel type on travail */
 #define REGEX_INT8 "^(int(8)\\(){1}[-]?[0-9]+[\\)]$"								/* Definit la grammaire d'un parametre pour chaque type */
 #define REGEX_INT16 "^(int(16)\\(){1}[-]?[0-9]+[\\)]$"
 #define REGEX_INT32 "^(int(32)\\(){1}[-]?[0-9]+[\\)]$"
@@ -74,10 +77,11 @@ public:
 	};
 
 private:
-	const factory			_operandCreator;		// Factory
-	const mapped_command	_commandList;			// Association d'une string a une commande
-	std::vector<IOperand*>	_stack;					// Stack
-	static AbstractVm *		_singleton;				// Gestion instance unique
+	const factory					_operandCreator;		// Factory
+	const mapped_command			_commandList;			// Association d'une string a une commande
+	std::vector<IOperand const *>	_stack;					// Stack
+	static AbstractVm *				_singleton;				// Gestion instance unique
+	unsigned int					_line;					// Ligne d'execution courante
 
 	AbstractVm();										// Canonical
 	const mapped_command createMap();

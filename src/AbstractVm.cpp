@@ -12,6 +12,7 @@
 
 #include <regex>
 #include "../include/AbstractVm.hpp"
+#include "../include/Operand.template.hpp"
 
 
 /************************/
@@ -96,14 +97,14 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 
 	vector_vstr::const_iterator it = script.begin();
 	std::string message;
-	int i = 1;
+	this->_line = 1;
 	while (it != script.end()) {
 
 		if (this->parsing(*it, &message) == false) {
-			ERROR(i);
+			ERROR(this->_line);
 			throw AbstractVm::AbstractVmException(message);
 		}
-		i++;
+		this->_line++;
 		it++;
 	}
 }
@@ -111,7 +112,7 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 void AbstractVm::execScript(vector_vstr const script) {
 
 	vector_vstr::const_iterator it = script.begin();
-	int i = 1;
+	this->_line = 1;
 	while (it != script.end()) {
 
 		if ((*it)[0][0] != ';') {	/* Si la ligne n'est pas commentée on peut la traiter */
@@ -152,7 +153,7 @@ void AbstractVm::execScript(vector_vstr const script) {
 				(this->*funcPointer)(NULL);
 		}
 
-		i++;
+		this->_line++;
 		it++;
 	}
 }
@@ -162,6 +163,8 @@ AbstractVm *AbstractVm::getInstance(void) {
 		_singleton = new AbstractVm();
 	return (_singleton);
 }
+
+/****CREATOR****/
 
 IOperand const *AbstractVm::createOperand(eOperandType type, std::string const &value) {
 
@@ -179,13 +182,6 @@ IOperand const *AbstractVm::createOperand(eOperandType type, std::string const &
 	if (std::regex_search(value.begin(),value.end(), cm, e) == false)
 		throw  AbstractVmException("No match, during the value extraction.");
 
-	/*
-	std::cout << "the matches were: ";
-	for (unsigned i=0; i<cm.size(); ++i) {
-		std::cout << "[" << cm[i] << "] ";
-	}
-	*/
-
 	if (n_match && cm.size() <= n_match)
 		throw  AbstractVmException("Not enough match");
 
@@ -193,57 +189,92 @@ IOperand const *AbstractVm::createOperand(eOperandType type, std::string const &
 }
 
 IOperand const *AbstractVm::createInt8(std::string const &value) {
-	DEBUGVAR("int8: ", value);
-
 	int nb = std::stoi(value);
 	if (nb < INT8_MIN || nb > INT8_MAX)
-		throw AbstractVm::AbstractVmException("Out");
-	//creation d'un operand, IOperand *op = new Operand<char>(INT8, value);
-	//return de l'Operand
-	return nullptr;
+		throw AbstractVm::AbstractVmException("INT8: Out of range");
+
+	IOperand *op = new Operand<char>(INT8, value, nb);
+	return op;
 }
 
 IOperand const *AbstractVm::createInt16(std::string const &value) {
-	(void) value;
-	DEBUGVAR("int16: ", value);
-	//extraction de la valeur dans un short
-	return nullptr;
+	int nb = std::stoi(value);
+	if (nb < INT16_MIN || nb > INT16_MAX)
+		throw AbstractVm::AbstractVmException("INT16: Out of range");
+
+	IOperand *op = new Operand<short>(INT16, value, nb);
+	return op;
 }
 
 IOperand const *AbstractVm::createInt32(std::string const &value) {
-	(void) value;
-	DEBUGVAR("int32: ", value);
-	//extraction de la valeur dans un int
-	return nullptr;
+	int nb = std::stoi(value);
+	if (nb < INT32_MIN || nb > INT32_MAX)
+		throw AbstractVm::AbstractVmException("INT32: Out of range");
+
+	IOperand *op = new Operand<int>(INT32, value, nb);
+	return op;
 }
 
 IOperand const *AbstractVm::createFloat(std::string const &value) {
-	(void) value;
-	DEBUGVAR("float: ", value);
-	//extraction de la valeur dans un float
-	return nullptr;
+
+	try
+	{
+		double nb = std::stof(value);
+
+		if (nb > std::numeric_limits<float>::max() || nb < std::numeric_limits<float>::min())
+			throw AbstractVm::AbstractVmException("FLOAT: Out of range");
+
+		IOperand *op = new Operand<float>(FLOAT, value, nb);
+		return op;
+	}
+	catch (std::exception const &e) {
+		std::cerr << e.what() << " (double)" << std::endl;
+	}
+	return NULL;
 }
 
 IOperand const *AbstractVm::createDouble(std::string const &value) {
-	(void) value;
-	DEBUGVAR("double: ", value);
-	//extraction de la valeur dans un double
-	return nullptr;
+	try
+	{
+		double nb = std::stof(value);
+		IOperand *op = new Operand<double>(DOUBLE, value, nb);
+		return op;
+	}
+	catch(std::exception const &e) {
+		std::cerr << "DOUBLE: Out of range" << std::endl;
+	}
+	return NULL;
 }
+
+/****COMMAND****/
 
 void AbstractVm::push(IOperand const *operand) {
 	DEBUG("----PUSH CODE-----");
-	(void) operand;
+	this->_stack.push_back(operand);
 }
 
 void AbstractVm::pop(IOperand const *operand) {
 	DEBUG("----POP CODE-----");
+
+	if (this->_stack.size() == 0) {
+		ERROR(this->_line);
+		throw AbstractVm::AbstractVmException("Pop on empty stack");
+	}
+
 	(void) operand;
 }
 
 void AbstractVm::dump(IOperand const *operand) {
 	DEBUG("----DUMP CODE-----");
-	(void) operand;
+
+	std::vector<IOperand const *>::const_iterator it = this->_stack.end();
+	while (it != this->_stack.begin()) {
+		it--;
+		std::cout << (*it)->toString() << std::endl;
+
+	}
+
+	(void)(operand);
 }
 
 void AbstractVm::assert(IOperand const *operand) {

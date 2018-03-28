@@ -17,14 +17,13 @@
 #include "AbstractVm.hpp"
 
 template<typename T>
-
 class Operand : public IOperand {
 
 private:
-	std::string		_str;
-	int				_precision;
 	eOperandType	_type;
+	std::string		_str;
 	T				_value;
+	int				_precision;
 
 	Operand<T>() {	} // Canonical
 
@@ -52,8 +51,15 @@ public:
 /*******_FUNCTION_*******/
 /************************/
 
-	Operand<T>(eOperandType type, std::string const &value): _type(type), _str(value) {
-		std::cout << "New Operand is created, type:" << type << ", value:" << value << std::endl;
+	Operand<T>(eOperandType type, std::string const &value, T val): _type(type), _str(value), _value(val) {
+		std::cout << "New Operand is created, type:" << type << ", string value:" << value << ", numeric value:";
+
+		if (type == FLOAT)
+			std::cout << static_cast<float>(val) << std::endl;
+		else if (type == DOUBLE)
+			std::cout << static_cast<double>(val) << std::endl;
+		else
+			std::cout << static_cast<int>(val) << std::endl;
 	}
 
 	int getPrecision(void) const {
@@ -66,27 +72,19 @@ public:
 
 	std::string const &toString(void) const {
 		return this->_str;
+		//plutot utiliser une conversion de la variable T _value vers une string
 	}
 
 /************************/
 /*******_OPERATOR_*******/
 /************************/
 
-	IOperand const *operator+(IOperand const &rhs) const { return(NULL); }
-	IOperand const *operator-(IOperand const &rhs) const { return(NULL); }
-	IOperand const *operator*(IOperand const &rhs) const { return(NULL); }
-	IOperand const *operator/(IOperand const &rhs) const { return(NULL); }
-	IOperand const *operator%(IOperand const &rhs) const { return(NULL); }
+	IOperand const *operator+(IOperand const &rhs) const { (void)rhs; return(NULL); }
+	IOperand const *operator-(IOperand const &rhs) const { (void)rhs; return(NULL); }
+	IOperand const *operator*(IOperand const &rhs) const { (void)rhs; return(NULL); }
+	IOperand const *operator/(IOperand const &rhs) const { (void)rhs; return(NULL); }
+	IOperand const *operator%(IOperand const &rhs) const { (void)rhs; return(NULL); }
 
 };
 
 #endif
-
-
-
-//		IOperand const *resultat = NULL;
-//
-//		if (this->_precision > rhs.getPrecision())
-//			resultat = AbstractVm::createOperand(this->_type, this->_str);
-//		else
-//			resultat = AbstractVm::createOperand(rhs.getType(), rhs.toString());
