@@ -125,6 +125,7 @@ int main(int ac, char **av) {
 		DEBUG("*** Exec Script ***");
 		DEBUG("*******************\n");
 		avm->execScript(*script);
+		delete avm;
 	}
 	catch(std::exception const &e) {
 		std::cerr << e.what() << std::endl;
