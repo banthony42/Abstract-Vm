@@ -97,6 +97,7 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 
 	vector_vstr::const_iterator it = script.begin();
 	std::string message;
+	bool exit = false;
 	this->_line = 1;
 	while (it != script.end()) {
 
@@ -104,8 +105,14 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 			ERROR(this->_line);
 			throw AbstractVm::AbstractVmException(message);
 		}
+		if (!exit && (*it)[0] == "exit")
+			exit = true;
 		this->_line++;
 		it++;
+	}
+	if (!exit) {
+		ERROR(this->_line - 1);
+		throw AbstractVm::AbstractVmException("The programm should end with an exit command.");
 	}
 }
 
@@ -152,7 +159,8 @@ void AbstractVm::execScript(vector_vstr const script) {
 			else							/* si la ligne ne comporte qu'un mot, alors on traite une commande simple */
 				(this->*funcPointer)(NULL);
 		}
-
+		if ((*it)[0] == "exit")	// Si la commande est exit, on arrete l'execution
+			return ;
 		this->_line++;
 		it++;
 	}
@@ -193,7 +201,7 @@ IOperand const *AbstractVm::createInt8(std::string const &value) {
 	if (nb < INT8_MIN || nb > INT8_MAX)
 		throw AbstractVm::AbstractVmException("INT8: Out of range");
 
-	IOperand *op = new Operand<char>(INT8, value, nb);
+	IOperand *op = new Operand<char>(INT8, nb);
 	return op;
 }
 
@@ -202,7 +210,7 @@ IOperand const *AbstractVm::createInt16(std::string const &value) {
 	if (nb < INT16_MIN || nb > INT16_MAX)
 		throw AbstractVm::AbstractVmException("INT16: Out of range");
 
-	IOperand *op = new Operand<short>(INT16, value, nb);
+	IOperand *op = new Operand<short>(INT16, nb);
 	return op;
 }
 
@@ -211,39 +219,38 @@ IOperand const *AbstractVm::createInt32(std::string const &value) {
 	if (nb < INT32_MIN || nb > INT32_MAX)
 		throw AbstractVm::AbstractVmException("INT32: Out of range");
 
-	IOperand *op = new Operand<int>(INT32, value, nb);
+	IOperand *op = new Operand<int>(INT32, nb);
 	return op;
 }
 
 IOperand const *AbstractVm::createFloat(std::string const &value) {
 
-	try
-	{
 		double nb = std::stof(value);
-
 		if (nb > std::numeric_limits<float>::max() || nb < std::numeric_limits<float>::min())
 			throw AbstractVm::AbstractVmException("FLOAT: Out of range");
 
-		IOperand *op = new Operand<float>(FLOAT, value, nb);
+		IOperand *op = new Operand<float>(FLOAT, nb);
 		return op;
-	}
-	catch (std::exception const &e) {
-		std::cerr << e.what() << " (double)" << std::endl;
-	}
-	return NULL;
 }
 
 IOperand const *AbstractVm::createDouble(std::string const &value) {
-	try
-	{
+
 		double nb = std::stof(value);
-		IOperand *op = new Operand<double>(DOUBLE, value, nb);
+		IOperand *op = new Operand<double>(DOUBLE, nb);
 		return op;
-	}
-	catch(std::exception const &e) {
-		std::cerr << "DOUBLE: Out of range" << std::endl;
-	}
-	return NULL;
+}
+
+/****STACK_COMMAND****/
+
+/*
+ * Recupere le dernier element et le supprime de la stack
+ */
+IOperand const *AbstractVm::popBack(void) {
+	if (!this->_stack.size())
+		return NULL;
+	IOperand const * op = this->_stack.back();
+	this->_stack.pop_back();
+	return op;
 }
 
 /****COMMAND****/
@@ -284,13 +291,27 @@ void AbstractVm::assert(IOperand const *operand) {
 
 void AbstractVm::add(IOperand const *operand) {
 	DEBUG("----ADD CODE-----");
-	// op1 = op2 + op3;
-	// utilisation du code surcharge op+ de op2
+	if (this->_stack.size() < 2)
+		throw AbstractVm::AbstractVmException("Can't add operand, the stack size is strictly less than 2");
+
+	IOperand const * op1 = this->popBack();
+	IOperand const * op2 = this->popBack();
+	IOperand const * op3 = *op1 + *op2;
+
+	this->_stack.push_back(op3);
 	(void) operand;
 }
 
 void AbstractVm::sub(IOperand const *operand) {
 	DEBUG("----SUB CODE-----");
+	if (this->_stack.size() < 2)
+		throw AbstractVm::AbstractVmException("Can't add operand, the stack size is strictly less than 2");
+
+	IOperand const * op1 = this->popBack();
+	IOperand const * op2 = this->popBack();
+	IOperand const * op3 = *op1 - *op2;
+
+	this->_stack.push_back(op3);
 	(void) operand;
 }
 
@@ -316,7 +337,13 @@ void AbstractVm::print(IOperand const *operand) {
 
 void AbstractVm::exit(IOperand const *operand) {
 	DEBUG("----EXIT CODE-----");
-	(void) operand;
+	IOperand const * tmp;
+	while (this->_stack.size()) {
+		tmp = this->popBack();
+		delete tmp;
+	}
+
+	(void)operand;
 }
 
 /************************/

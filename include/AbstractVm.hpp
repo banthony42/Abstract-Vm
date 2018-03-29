@@ -58,6 +58,8 @@ public:
 	void execScript(vector_vstr const script);
 	void checkSyntax(vector_vstr const script);
 
+	IOperand const * popBack(void);
+
 	/****************************/
 	/***_AbstractVm Exception_***/
 	/****************************/
@@ -75,6 +77,7 @@ public:
 		std::string const _errorMessage;
 		AbstractVmException operator=(AbstractVmException const &rhs);
 	};
+
 
 private:
 	const factory					_operandCreator;		// Factory
