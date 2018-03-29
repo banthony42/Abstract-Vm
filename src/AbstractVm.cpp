@@ -116,6 +116,11 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 	}
 }
 
+/* Aide rappel
+ * (*it)		= vecteur de string, (correspond a une ligne issue d'un split suivant espaces, tab)
+ * (*it)[0]		= premier mot de la ligne (*it)
+ * (*it)[0][0]	= premier caractere du premier mot de la ligne (*it)
+ */
 void AbstractVm::execScript(vector_vstr const script) {
 
 	vector_vstr::const_iterator it = script.begin();
@@ -256,31 +261,24 @@ IOperand const *AbstractVm::popBack(void) {
 /****COMMAND****/
 
 void AbstractVm::push(IOperand const *operand) {
-	DEBUG("----PUSH CODE-----");
 	this->_stack.push_back(operand);
 }
 
 void AbstractVm::pop(IOperand const *operand) {
-	DEBUG("----POP CODE-----");
-
 	if (this->_stack.size() == 0) {
 		ERROR(this->_line);
 		throw AbstractVm::AbstractVmException("Pop on empty stack");
 	}
-
 	(void) operand;
 }
 
 void AbstractVm::dump(IOperand const *operand) {
-	DEBUG("----DUMP CODE-----");
-
 	std::vector<IOperand const *>::const_iterator it = this->_stack.end();
 	while (it != this->_stack.begin()) {
 		it--;
 		std::cout << (*it)->toString() << std::endl;
 
 	}
-
 	(void)(operand);
 }
 
@@ -290,7 +288,6 @@ void AbstractVm::assert(IOperand const *operand) {
 }
 
 void AbstractVm::add(IOperand const *operand) {
-	DEBUG("----ADD CODE-----");
 	if (this->_stack.size() < 2)
 		throw AbstractVm::AbstractVmException("Can't add operand, the stack size is strictly less than 2");
 
@@ -303,9 +300,8 @@ void AbstractVm::add(IOperand const *operand) {
 }
 
 void AbstractVm::sub(IOperand const *operand) {
-	DEBUG("----SUB CODE-----");
 	if (this->_stack.size() < 2)
-		throw AbstractVm::AbstractVmException("Can't add operand, the stack size is strictly less than 2");
+		throw AbstractVm::AbstractVmException("Can't sub operand, the stack size is strictly less than 2");
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
@@ -336,13 +332,11 @@ void AbstractVm::print(IOperand const *operand) {
 }
 
 void AbstractVm::exit(IOperand const *operand) {
-	DEBUG("----EXIT CODE-----");
 	IOperand const * tmp;
 	while (this->_stack.size()) {
-		tmp = this->popBack();
-		delete tmp;
+		tmp = this->popBack();		// Depilage et recuperation d'une operand
+		delete tmp;					// Liberation de la memoire
 	}
-
 	(void)operand;
 }
 
