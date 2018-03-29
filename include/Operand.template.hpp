@@ -13,6 +13,7 @@
 #ifndef OPERAND_TEMPLATE_HPP
 #define OPERAND_TEMPLATE_HPP
 
+#include <sstream>
 #include "IOperand.hpp"
 #include "AbstractVm.hpp"
 
@@ -41,9 +42,14 @@ public:
 	{
 		if (this != &copy)
 		{
+			std::ostringstream convert;
+
 			this->_type = copy.getType();
+			convert << copy._value;
+			this->_str = convert.str();
+			this->_value = copy._value;
 			this->_precision = copy.getPrecision();
-			this->_str = toString();
+			return *this;
 		}
 	}
 
@@ -72,14 +78,35 @@ public:
 
 	std::string const &toString(void) const {
 		return this->_str;
-		//plutot utiliser une conversion de la variable T _value vers une string
 	}
 
 /************************/
 /*******_OPERATOR_*******/
 /************************/
 
-	IOperand const *operator+(IOperand const &rhs) const { (void)rhs; return(NULL); }
+	IOperand const *operator+(IOperand const &rhs) const {
+		eOperandType t = (this->getType() > rhs.getType()) ? (this->getType()) : (rhs.getType());
+		double nb = std::stod(rhs.toString());
+
+		// gestion overflow here
+
+		switch(t) {
+			case INT8:
+				return reinterpret_cast<const IOperand *>(new Operand<char>(INT8, this->toString(), this->_value + nb));
+			case INT16:
+				return reinterpret_cast<const IOperand *>(new Operand<short>(INT16, this->toString(), this->_value + nb));
+			case INT32:
+				return reinterpret_cast<const IOperand *>(new Operand<int>(INT32, this->toString(), this->_value + nb));
+			case FLOAT:
+				return reinterpret_cast<const IOperand *>(new Operand<float>(FLOAT, this->toString(), this->_value + nb));
+			case DOUBLE:
+				return reinterpret_cast<const IOperand *>(new Operand<double>(DOUBLE, this->toString(), this->_value + nb));
+			case NB_TYPE:
+				return NULL;
+		}
+		return NULL;
+	}
+
 	IOperand const *operator-(IOperand const &rhs) const { (void)rhs; return(NULL); }
 	IOperand const *operator*(IOperand const &rhs) const { (void)rhs; return(NULL); }
 	IOperand const *operator/(IOperand const &rhs) const { (void)rhs; return(NULL); }

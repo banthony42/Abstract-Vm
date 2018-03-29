@@ -284,6 +284,8 @@ void AbstractVm::assert(IOperand const *operand) {
 
 void AbstractVm::add(IOperand const *operand) {
 	DEBUG("----ADD CODE-----");
+	// op1 = op2 + op3;
+	// utilisation du code surcharge op+ de op2
 	(void) operand;
 }
 
