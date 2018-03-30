@@ -266,8 +266,10 @@ void AbstractVm::push(IOperand const *operand) {
 void AbstractVm::pop(IOperand const *operand) {
 	if (this->_stack.size() == 0) {
 		ERROR(this->_line);
-		throw AbstractVm::AbstractVmException("Pop on empty stack");
+		throw AbstractVm::AbstractVmException("Error: Pop on empty stack");
 	}
+	IOperand const *tmp = this->popBack();
+	delete tmp;
 	(void) operand;
 }
 
@@ -282,74 +284,101 @@ void AbstractVm::dump(IOperand const *operand) {
 }
 
 void AbstractVm::assert(IOperand const *operand) {
-	DEBUG("----ASSERT CODE-----");
-	(void) operand;
+	if (this->_stack.size() == 0) {
+		ERROR(this->_line);
+		throw AbstractVm::AbstractVmException("Error: Assert on empty stack");
+	}
+	std::vector<IOperand const *>::const_iterator it = this->_stack.end();
+	it--;
+	if ((*it)->toString() != operand->toString()
+			|| (*it)->getPrecision() != operand->getPrecision()
+			|| (*it)->getType() != operand->getType())
+		throw AbstractVm::AbstractVmException("Error: Assert has failed");
 }
 
 void AbstractVm::add(IOperand const *operand) {
 	if (this->_stack.size() < 2)
-		throw AbstractVm::AbstractVmException("Can't add operand, the stack size is strictly less than 2");
+		throw AbstractVm::AbstractVmException("Error: Can't add operand, the stack size is strictly less than 2");
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
 	IOperand const * op3 = *op1 + *op2;
 
 	this->_stack.push_back(op3);
+	delete op1;
+	delete op2;
 	(void) operand;
 }
 
 void AbstractVm::sub(IOperand const *operand) {
 	if (this->_stack.size() < 2)
-		throw AbstractVm::AbstractVmException("Can't sub operand, the stack size is strictly less than 2");
+		throw AbstractVm::AbstractVmException("Error: Can't sub operand, the stack size is strictly less than 2");
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
 	IOperand const * op3 = *op1 - *op2;
 
 	this->_stack.push_back(op3);
+	delete op1;
+	delete op2;
 	(void) operand;
 }
 
 void AbstractVm::mul(IOperand const *operand) {
 	DEBUG("----MUL CODE-----");
 	if (this->_stack.size() < 2)
-		throw AbstractVm::AbstractVmException("Can't sub operand, the stack size is strictly less than 2");
+		throw AbstractVm::AbstractVmException("Error: Can't mul operand, the stack size is strictly less than 2");
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
 	IOperand const * op3 = *op1 * *op2;
 
 	this->_stack.push_back(op3);
+	delete op1;
+	delete op2;
 	(void) operand;
 }
 
 void AbstractVm::div(IOperand const *operand) {
 	if (this->_stack.size() < 2)
-		throw AbstractVm::AbstractVmException("Can't sub operand, the stack size is strictly less than 2");
+		throw AbstractVm::AbstractVmException("Error: Can't div operand, the stack size is strictly less than 2");
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
 	IOperand const * op3 = *op1 / *op2;
 
 	this->_stack.push_back(op3);
+	delete op1;
+	delete op2;
 	(void) operand;
 }
 
 void AbstractVm::mod(IOperand const *operand) {
 	if (this->_stack.size() < 2)
-		throw AbstractVm::AbstractVmException("Can't sub operand, the stack size is strictly less than 2");
+		throw AbstractVm::AbstractVmException("Error: Can't mod operand, the stack size is strictly less than 2");
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
 	IOperand const * op3 = *op1 % *op2;
 
 	this->_stack.push_back(op3);
+	delete op1;
+	delete op2;
 	(void) operand;
 }
 
 void AbstractVm::print(IOperand const *operand) {
-	DEBUG("----PRINT CODE-----");
+	if (this->_stack.size() == 0) {
+		ERROR(this->_line);
+		throw AbstractVm::AbstractVmException("Error: Print on empty stack");
+	}
+	IOperand const * tmp = this->_stack.back();
+	if (tmp->getType() == tmp->getPrecision() == INT8) {
+		std::cout << static_cast<char>(std::stoi(tmp->toString()));
+		return ;
+	}
 	(void) operand;
+	throw AbstractVm::AbstractVmException("Error: The value at the top of the stack is not an INT8");
 }
 
 void AbstractVm::exit(IOperand const *operand) {

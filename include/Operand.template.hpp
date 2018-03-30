@@ -63,6 +63,7 @@ public:
 		convert << static_cast<double>(this->_value);
 		this->_str = convert.str();
 
+		/*
 		std::cout << "New Operand is created, type:" << type << ", string value:" << this->toString() << ", numeric value:";
 		if (type == FLOAT)
 			std::cout << static_cast<float>(val) << std::endl;
@@ -70,6 +71,7 @@ public:
 			std::cout << static_cast<double>(val) << std::endl;
 		else
 			std::cout << static_cast<int>(val) << std::endl;
+		 */
 	}
 
 	int getPrecision(void) const {
@@ -244,9 +246,8 @@ public:
 			if (std::fabs(b) > (max / std::fabs(a)))	// si b est superieur a x, ou x * a = max
 				throw AbstractVm::AbstractVmException("Error: Operation will overflow");
 		}
-
 		// Sinon a et b ont un signe different, l'underflow est possible
-		if (std::fabs(b) > (min / std::fabs(a)))	// si b est superieur a x, ou x * a = min
+		else if (std::fabs(b) > (min / std::fabs(a)))	// si b est superieur a x, ou x * a = min
 			throw AbstractVm::AbstractVmException("Error: Operation will underflow");
 	}
 
@@ -256,7 +257,7 @@ public:
 
 		if (b == 0)
 			throw AbstractVm::AbstractVmException("Error: Divide by zero");
-		if (a == min && b == -1)
+		else if (a == min && b == -1)
 			throw AbstractVm::AbstractVmException("Error: Operation will underflow");
 	}
 };
