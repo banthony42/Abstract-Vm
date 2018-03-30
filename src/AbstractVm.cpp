@@ -230,9 +230,7 @@ IOperand const *AbstractVm::createInt32(std::string const &value) {
 
 IOperand const *AbstractVm::createFloat(std::string const &value) {
 
-		double nb = std::stof(value);
-		if (nb > std::numeric_limits<float>::max() || nb < std::numeric_limits<float>::min())
-			throw AbstractVm::AbstractVmException("FLOAT: Out of range");
+		float nb = std::stof(value);
 
 		IOperand *op = new Operand<float>(FLOAT, nb);
 		return op;
@@ -240,7 +238,8 @@ IOperand const *AbstractVm::createFloat(std::string const &value) {
 
 IOperand const *AbstractVm::createDouble(std::string const &value) {
 
-		double nb = std::stof(value);
+		double nb = std::stod(value);
+
 		IOperand *op = new Operand<double>(DOUBLE, nb);
 		return op;
 }
@@ -313,16 +312,38 @@ void AbstractVm::sub(IOperand const *operand) {
 
 void AbstractVm::mul(IOperand const *operand) {
 	DEBUG("----MUL CODE-----");
+	if (this->_stack.size() < 2)
+		throw AbstractVm::AbstractVmException("Can't sub operand, the stack size is strictly less than 2");
+
+	IOperand const * op1 = this->popBack();
+	IOperand const * op2 = this->popBack();
+	IOperand const * op3 = *op1 * *op2;
+
+	this->_stack.push_back(op3);
 	(void) operand;
 }
 
 void AbstractVm::div(IOperand const *operand) {
-	DEBUG("----DIV CODE-----");
+	if (this->_stack.size() < 2)
+		throw AbstractVm::AbstractVmException("Can't sub operand, the stack size is strictly less than 2");
+
+	IOperand const * op1 = this->popBack();
+	IOperand const * op2 = this->popBack();
+	IOperand const * op3 = *op1 / *op2;
+
+	this->_stack.push_back(op3);
 	(void) operand;
 }
 
 void AbstractVm::mod(IOperand const *operand) {
-	DEBUG("----MOD CODE-----");
+	if (this->_stack.size() < 2)
+		throw AbstractVm::AbstractVmException("Can't sub operand, the stack size is strictly less than 2");
+
+	IOperand const * op1 = this->popBack();
+	IOperand const * op2 = this->popBack();
+	IOperand const * op3 = *op1 % *op2;
+
+	this->_stack.push_back(op3);
 	(void) operand;
 }
 

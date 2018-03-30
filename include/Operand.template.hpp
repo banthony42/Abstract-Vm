@@ -140,9 +140,83 @@ public:
 		return NULL;
 	}
 
-	IOperand const *operator*(IOperand const &rhs) const { (void)rhs; return(NULL); }
-	IOperand const *operator/(IOperand const &rhs) const { (void)rhs; return(NULL); }
-	IOperand const *operator%(IOperand const &rhs) const { (void)rhs; return(NULL); }
+	IOperand const *operator*(IOperand const &rhs) const {
+		eOperandType t = (this->getType() > rhs.getType()) ? (this->getType()) : (rhs.getType());
+		double nb = std::stod(rhs.toString());
+
+		switch (t) {
+			case INT8:
+				limitMult<char>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<char>(INT8, this->_value * nb));
+			case INT16:
+				limitMult<short>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<short>(INT16, this->_value * nb));
+			case INT32:
+				limitMult<int>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<int>(INT32, this->_value * nb));
+			case FLOAT:
+				limitMult<float>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<float>(FLOAT, this->_value * nb));
+			case DOUBLE:
+				limitMult<double>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<double>(DOUBLE, this->_value * nb));
+			case NB_TYPE:
+				return NULL;
+		}
+		return (NULL);
+	}
+
+	IOperand const *operator/(IOperand const &rhs) const {
+		eOperandType t = (this->getType() > rhs.getType()) ? (this->getType()) : (rhs.getType());
+		double nb = std::stod(rhs.toString());
+
+		switch (t) {
+			case INT8:
+				limitDivMod<char>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<char>(INT8, this->_value / nb));
+			case INT16:
+				limitDivMod<short>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<short>(INT16, this->_value / nb));
+			case INT32:
+				limitDivMod<int>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<int>(INT32, this->_value / nb));
+			case FLOAT:
+				limitDivMod<float>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<float>(FLOAT, this->_value / nb));
+			case DOUBLE:
+				limitDivMod<double>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<double>(DOUBLE, this->_value / nb));
+			case NB_TYPE:
+				return NULL;
+		}
+		return (NULL);
+	}
+
+	IOperand const *operator%(IOperand const &rhs) const {
+		eOperandType t = (this->getType() > rhs.getType()) ? (this->getType()) : (rhs.getType());
+		double nb = std::stod(rhs.toString());
+
+		switch (t) {
+			case INT8:
+				limitDivMod<char>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<char>(INT8, std::fmod(this->_value, nb)));
+			case INT16:
+				limitDivMod<short>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<short>(INT16, std::fmod(this->_value, nb)));
+			case INT32:
+				limitDivMod<int>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<int>(INT32, std::fmod(this->_value, nb)));
+			case FLOAT:
+				limitDivMod<float>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<float>(FLOAT, std::fmod(this->_value, nb)));
+			case DOUBLE:
+				limitDivMod<double>(this->_value, nb);
+				return reinterpret_cast<const IOperand *>(new Operand<double>(DOUBLE, std::fmod(this->_value, nb)));
+			case NB_TYPE:
+				return NULL;
+		}
+		return (NULL);
+	}
 
 	template <typename A>
 	void limitAddSub(double a, double b) const {
@@ -154,13 +228,37 @@ public:
 			if (a < 0) {        		// Si a est negatif (rappel: a ce stade b a forcement le meme signe que a)
 
 				if (std::fabs(b) > (std::fabs(min) - std::fabs(a)))
-					throw AbstractVm::AbstractVmException("Operation will underflow");
+					throw AbstractVm::AbstractVmException("Error: Operation will underflow");
 			}
 			else if (b > (max - a))		// Si b > x, ou x est ce qu'il manque à a pour atteindre le max
-				throw AbstractVm::AbstractVmException("Operation will overflow");
+				throw AbstractVm::AbstractVmException("Error: Operation will overflow");
 		}
 	}
-};
 
+	template <typename B>
+	void limitMult(double a, double b) const {
+		B max = std::numeric_limits<B>::max();
+		B min = std::numeric_limits<B>::min();
+
+		if ((a < 0) == (b < 0)) {        				// Si a et b ont le meme signe
+			if (std::fabs(b) > (max / std::fabs(a)))	// si b est superieur a x, ou x * a = max
+				throw AbstractVm::AbstractVmException("Error: Operation will overflow");
+		}
+
+		// Sinon a et b ont un signe different, l'underflow est possible
+		if (std::fabs(b) > (min / std::fabs(a)))	// si b est superieur a x, ou x * a = min
+			throw AbstractVm::AbstractVmException("Error: Operation will underflow");
+	}
+
+	template <typename C>
+	void limitDivMod(double a, double b) const {
+		C min = std::numeric_limits<C>::min();
+
+		if (b == 0)
+			throw AbstractVm::AbstractVmException("Error: Divide by zero");
+		if (a == min && b == -1)
+			throw AbstractVm::AbstractVmException("Error: Operation will underflow");
+	}
+};
 
 #endif
