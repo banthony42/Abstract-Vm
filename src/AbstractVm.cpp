@@ -311,8 +311,11 @@ void AbstractVm::assert(IOperand const *operand) {
 
 	if ((*it)->toString() != operand->toString()
 			|| (*it)->getPrecision() != operand->getPrecision()
-			|| (*it)->getType() != operand->getType())
+			|| (*it)->getType() != operand->getType()) {
+		delete operand;
 		throw AbstractVm::AbstractVmException("Error: Assert has failed");
+	}
+	delete operand;
 }
 
 void AbstractVm::add(IOperand const *operand) {
@@ -392,7 +395,7 @@ void AbstractVm::print(IOperand const *operand) {
 		throw AbstractVm::AbstractVmException("Error: Print on empty stack");
 	}
 	IOperand const * tmp = this->_stack.back();
-	if (tmp->getType() == tmp->getPrecision() == INT8) {
+	if (tmp->getType() == INT8 && tmp->getPrecision() == INT8) {
 		std::cout << static_cast<char>(std::stoi(tmp->toString())) << std::endl;
 		return ;
 	}
@@ -422,6 +425,7 @@ AbstractVm::AbstractVm(AbstractVm const &copy) {
 }
 
 AbstractVm::~AbstractVm() {
+//	delete this->_singleton;
 	return;
 }
 

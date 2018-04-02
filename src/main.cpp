@@ -128,5 +128,6 @@ int main(int ac, char **av) {
 	}
 
 	delete script;
+
 	return (0);
 }

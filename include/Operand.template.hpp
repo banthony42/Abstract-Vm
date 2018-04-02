@@ -62,16 +62,6 @@ public:
 		std::ostringstream convert;
 		convert << static_cast<double>(this->_value);
 		this->_str = convert.str();
-
-		/*
-		std::cout << "New Operand is created, type:" << type << ", string value:" << this->toString() << ", numeric value:";
-		if (type == FLOAT)
-			std::cout << static_cast<float>(val) << std::endl;
-		else if (type == DOUBLE)
-			std::cout << static_cast<double>(val) << std::endl;
-		else
-			std::cout << static_cast<int>(val) << std::endl;
-		 */
 	}
 
 	int getPrecision(void) const {
