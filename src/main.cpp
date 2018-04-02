@@ -95,6 +95,8 @@ int main(int ac, char **av) {
 	vector_vstr *script = NULL;
 	vector_vstr::const_iterator it;
 
+	/***PARTIE LEXER: RECUP DU SCRIPT SPLIT PAR MOTS***/
+
 	if (ac > 1) {
 		if (!(script = get_script(av[1])))  /* Recup du programme dans le fichier */
 			return (0);
@@ -108,9 +110,9 @@ int main(int ac, char **av) {
 		return (0);
 	}
 
-	DEBUG("*******************");
-	DEBUG("*** Abstract Vm ***");
-	DEBUG("*******************\n");
+	DEBUG("********************");
+	DEBUG("*** Abstract Vm ****");
+	DEBUG("********************\n");
 
 	try {
 		AbstractVm *avm = AbstractVm::getInstance();
@@ -118,12 +120,13 @@ int main(int ac, char **av) {
 		DEBUG("********************");
 		DEBUG("*** Check Script ***");
 		DEBUG("********************");
-		avm->checkSyntax(*script);
-		DEBUG("======> OK! <=======");
 
-		DEBUG("*******************");
-		DEBUG("*** Exec Script ***");
-		DEBUG("*******************\n");
+		avm->checkSyntax(*script);
+		DEBUG("======> OK! <=======\n");
+
+		DEBUG("********************");
+		DEBUG("*** Exec  Script ***");
+		DEBUG("********************\n");
 		avm->execScript(*script);
 		delete avm;
 	}

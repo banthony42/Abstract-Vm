@@ -53,9 +53,14 @@ AbstractVm *AbstractVm::_singleton = NULL;        /* Initialisation de la single
 /************************/
 /*******_FUNCTION_*******/
 /************************/
-
+/*
+for (unsigned long long i = 0; i < cm.size(); ++i) {
+DEBUG(cm[i]);
+}
+*/
 bool AbstractVm::parsing(vector_str line, std::string *message) {
 
+	std::smatch cm;
 	std::regex cmdList(REGEX_CMDLIST);
 	std::regex integer_value(REGEX_INTVALUE);
 	std::regex decimal_value(REGEX_DECIMALVALUE);
@@ -69,6 +74,8 @@ bool AbstractVm::parsing(vector_str line, std::string *message) {
 	}
 
 	if (line[0] == "push" || line[0] == "assert") {    /* Commandes qui necessitent un argument en parametre */
+
+		std::string const value(line[1]);
 
 		if (std::regex_match(line[1], integer_value) == false) {        /* Test si VALUE == intXX(XX)				*/
 
@@ -98,12 +105,14 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 	vector_vstr::const_iterator it = script.begin();
 	std::string message;
 	bool exit = false;
+	bool err = true;
 	this->_line = 1;
 	while (it != script.end()) {
 
 		if (this->parsing(*it, &message) == false) {
 			ERROR(this->_line);
-			throw AbstractVm::AbstractVmException(message);
+			std::cerr << message << std::endl;
+			err = false;
 		}
 		if (!exit && (*it)[0] == "exit")
 			exit = true;
@@ -112,8 +121,11 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 	}
 	if (!exit) {
 		ERROR(this->_line - 1);
-		throw AbstractVm::AbstractVmException("The programm should end with an exit command.");
+		std::cerr << "The programm should end with an exit command." << std::endl;
+		err = false;
 	}
+	if (!err)
+		throw AbstractVm::AbstractVmException("======> KO! <=======\n");
 }
 
 /* Aide rappel
@@ -123,13 +135,17 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
  */
 void AbstractVm::execScript(vector_vstr const script) {
 
+	size_t resize = 0;
 	vector_vstr::const_iterator it = script.begin();
 	this->_line = 1;
 	while (it != script.end()) {
 
 		if ((*it)[0][0] != ';') {	/* Si la ligne n'est pas commentée on peut la traiter */
 									/* Recup de la fonction associé a la commande, a partir de sa string */
-			AbstractVm::cmdFuncPtr funcPointer = AbstractVm::_commandList.at((*it)[0]);
+
+			resize = (*it)[0].find_first_of(';');
+
+			AbstractVm::cmdFuncPtr funcPointer = this->_commandList.at((*it)[0].substr(0, resize));
 
 			if ((*it).size() > 1) {				/* Si la ligne contient plus de un mot 				*/
 				if ((*it)[1][0] != ';') {		/* Et que le second mot n'est pas un commentaire 	*/
@@ -325,7 +341,7 @@ void AbstractVm::sub(IOperand const *operand) {
 }
 
 void AbstractVm::mul(IOperand const *operand) {
-	DEBUG("----MUL CODE-----");
+
 	if (this->_stack.size() < 2)
 		throw AbstractVm::AbstractVmException("Error: Can't mul operand, the stack size is strictly less than 2");
 

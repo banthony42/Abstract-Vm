@@ -20,19 +20,19 @@
 
 /* Utilisé pour la recuperation de la valeur, ex:"double(42.42)" -> 42.42 */
 #define REGEX_INTEGER "([-]?\\d+).*?([-]?\\d+)"
-#define REGEX_DECIMAL "[-]?\\d+[.]\\d+"
+#define REGEX_DECIMAL "[-]?\\d+([.]\\d+)?"
 
 /* Utilisé pour verifier la syntaxe */
-#define REGEX_CMDLIST "^(push|pop|dump|assert|add|sub|mul|div|mod|print|exit){1}$"	/* Liste des commandes disponible */
-#define REGEX_INTVALUE "^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+[\\)]$"				/* Definit la grammaire d'un parametre de type entier */
-#define REGEX_DECIMALVALUE "^((float|double)\\(){1}([-]?[0-9]+[.][0-9]+)[\\)]$"		/* Definit la grammaire d'un parametre de type decimal */
+#define REGEX_CMDLIST "^(push|pop|dump|assert|add|sub|mul|div|mod|print|exit){1}((?=;)(.+))?"	/* Liste des commandes disponible */
+#define REGEX_INTVALUE "^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+[\\)]([;].+)?"				/* Definit la grammaire d'un parametre de type entier */
+#define REGEX_DECIMALVALUE "^((float|double)\\(){1}([-]?[0-9]+([.][0-9]+)?)[\\)]([;].+)?"		/* Definit la grammaire d'un parametre de type decimal */
 
 /* Utilisé pour savoir avec quel type on travail */
-#define REGEX_INT8 "^(int(8)\\(){1}[-]?[0-9]+[\\)]$"								/* Definit la grammaire d'un parametre pour chaque type */
-#define REGEX_INT16 "^(int(16)\\(){1}[-]?[0-9]+[\\)]$"
-#define REGEX_INT32 "^(int(32)\\(){1}[-]?[0-9]+[\\)]$"
-#define REGEX_FLOAT "^(float\\(){1}[-]?[0-9]+[.][0-9]+[\\)]$"
-#define REGEX_DOUBLE "^(double\\(){1}[-]?[0-9]+[.][0-9]+[\\)]$"
+#define REGEX_INT8 "^(int(8)\\(){1}[-]?[0-9]+[\\)]([;].+)?"								/* Definit la grammaire d'un parametre pour chaque type */
+#define REGEX_INT16 "^(int(16)\\(){1}[-]?[0-9]+[\\)]([;].+)?"
+#define REGEX_INT32 "^(int(32)\\(){1}[-]?[0-9]+[\\)]([;].+)?"
+#define REGEX_FLOAT "^(float\\(){1}[-]?[0-9]+([.][0-9]+)?[\\)]([;].+)?"
+#define REGEX_DOUBLE "^(double\\(){1}[-]?[0-9]+([.][0-9]+)?[\\)]([;].+)?"
 
 #define ERROR(i) std::cerr << "Line " << i << ": Error : ";
 
