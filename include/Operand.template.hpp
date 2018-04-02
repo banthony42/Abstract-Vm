@@ -57,7 +57,7 @@ public:
 /*******_FUNCTION_*******/
 /************************/
 
-	Operand<T>(eOperandType const type, T const val): _type(type), _value(val) {
+	Operand<T>(eOperandType const type, T const val): _type(type), _value(val), _precision(type) {
 
 		std::ostringstream convert;
 		convert << static_cast<double>(this->_value);

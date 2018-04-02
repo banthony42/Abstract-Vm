@@ -308,6 +308,7 @@ void AbstractVm::assert(IOperand const *operand) {
 	}
 	std::vector<IOperand const *>::const_iterator it = this->_stack.end();
 	it--;
+
 	if ((*it)->toString() != operand->toString()
 			|| (*it)->getPrecision() != operand->getPrecision()
 			|| (*it)->getType() != operand->getType())
