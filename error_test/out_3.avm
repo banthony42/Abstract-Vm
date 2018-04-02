@@ -1,0 +1,3 @@
+push int8(127)
+push int8(1)
+add

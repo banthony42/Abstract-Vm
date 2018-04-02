@@ -1,0 +1,12 @@
+push; int8(0)
+push ;int8(10)
+dump;;
+dump ;comment
+dump; comment
+dump; comment;;
+dump ;;comment comment
+exit;
+exit ;;
+exit;;
+;; e
+;;

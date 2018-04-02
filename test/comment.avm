@@ -1,0 +1,4 @@
+push int8(0)
+dump; comment
+dump; ;;comment
+exit;;

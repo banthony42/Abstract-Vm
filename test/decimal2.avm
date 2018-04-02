@@ -1,0 +1,6 @@
+push double(0.0) ;comment
+push float(0);comment
+add;addition
+push float(42.42);comment
+dump
+exit

@@ -1,0 +1,31 @@
+push int8(42)
+print
+pop
+push int8(42)
+print
+pop
+push int8(67)
+print
+pop
+push int8(79)
+print
+pop
+push int8(85)
+print
+pop
+push int8(67)
+print
+pop
+push int8(79)
+print
+pop
+push int8(85)
+print
+pop
+push int8(42)
+print
+pop
+push int8(42)
+print
+pop
+exit

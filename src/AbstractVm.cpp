@@ -62,14 +62,16 @@ bool AbstractVm::parsing(vector_str line, std::string *message) {
 
 	std::smatch cm;
 	std::regex cmdList(REGEX_CMDLIST);
+	std::regex cmdList2(REGEX_CMDLIST_2);
 	std::regex integer_value(REGEX_INTVALUE);
 	std::regex decimal_value(REGEX_DECIMALVALUE);
 
 	if (line[0][0] == ';')    /* Si commentaire on passe */
 		return true;
 
-	if (std::regex_match(line[0], cmdList) == false) {        /* Test parmis la liste des commandes disponnible	*/
-		*message = "Command not found";                        /* Si aucune n'est trouvé, erreur					*/
+	/* Test parmis la liste des commandes disponnible	*/
+	if (std::regex_match(line[0], cmdList) == false && std::regex_match(line[0], cmdList2) == false) {
+		*message = "Command not found";		/* Si aucune n'est trouvé, erreur */
 		return false;
 	}
 
@@ -85,14 +87,14 @@ bool AbstractVm::parsing(vector_str line, std::string *message) {
 			}
 		}
 
-		if (line.size() > 2 && line[2][0] != ';') {        /* Si la ligne comporte plusieurs mots et que le troisieme ne commence pas par ; */
-			*message = "Too many argument";                /* un commentaires, alors erreur. */
+		if (line.size() > 2 && (line[2][0] != ';' && (line[1].find_first_of(';') == std::string::npos))) {        /* Si la ligne comporte plusieurs mots et que le troisieme ne commence pas par ; */
+			*message = "Too many argument 1";                /* un commentaires, alors erreur. */
 			return false;
 		}
 	} else {    /* Commandes qui n'ont aucun parametre */
 
-		if (line.size() > 1 && line[1][0] != ';') {        /* Si la ligne comporte plusieurs mots et que le second ne commence pas par ; */
-			*message = "Too many argument";                /* un commentaires, alors erreur. */
+		if (line.size() > 1 && (line[1][0] != ';' && (line[0].find_first_of(';') == std::string::npos))) {        /* Si la ligne comporte plusieurs mots et que le second ne commence pas par ; */
+			*message = "Too many argument 2";                /* un commentaires, alors erreur. */
 			return false;
 		}
 	}
@@ -114,7 +116,7 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 			std::cerr << message << std::endl;
 			err = false;
 		}
-		if (!exit && (*it)[0] == "exit")
+		if (!exit && std::regex_match((*it)[0], std::regex("exit((?=;)(.+))?")))
 			exit = true;
 		this->_line++;
 		it++;
@@ -125,7 +127,7 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 		err = false;
 	}
 	if (!err)
-		throw AbstractVm::AbstractVmException("======> KO! <=======\n");
+		throw AbstractVm::AbstractVmException("Program stopped.");
 }
 
 /* Aide rappel
@@ -318,7 +320,7 @@ void AbstractVm::add(IOperand const *operand) {
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
-	IOperand const * op3 = *op1 + *op2;
+	IOperand const * op3 = *op2 + *op1;
 
 	this->_stack.push_back(op3);
 	delete op1;
@@ -332,7 +334,7 @@ void AbstractVm::sub(IOperand const *operand) {
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
-	IOperand const * op3 = *op1 - *op2;
+	IOperand const * op3 = *op2 - *op1;
 
 	this->_stack.push_back(op3);
 	delete op1;
@@ -347,7 +349,7 @@ void AbstractVm::mul(IOperand const *operand) {
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
-	IOperand const * op3 = *op1 * *op2;
+	IOperand const * op3 = *op2 * *op1;
 
 	this->_stack.push_back(op3);
 	delete op1;
@@ -361,7 +363,7 @@ void AbstractVm::div(IOperand const *operand) {
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
-	IOperand const * op3 = *op1 / *op2;
+	IOperand const * op3 = *op2 / *op1;
 
 	this->_stack.push_back(op3);
 	delete op1;
@@ -375,7 +377,7 @@ void AbstractVm::mod(IOperand const *operand) {
 
 	IOperand const * op1 = this->popBack();
 	IOperand const * op2 = this->popBack();
-	IOperand const * op3 = *op1 % *op2;
+	IOperand const * op3 = *op2 % *op1;
 
 	this->_stack.push_back(op3);
 	delete op1;
@@ -390,7 +392,7 @@ void AbstractVm::print(IOperand const *operand) {
 	}
 	IOperand const * tmp = this->_stack.back();
 	if (tmp->getType() == tmp->getPrecision() == INT8) {
-		std::cout << static_cast<char>(std::stoi(tmp->toString()));
+		std::cout << static_cast<char>(std::stoi(tmp->toString())) << std::endl;
 		return ;
 	}
 	(void) operand;

@@ -1,0 +1,4 @@
+push double(42.0)
+push double(0.0)
+div
+exit

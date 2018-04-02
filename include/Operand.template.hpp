@@ -122,19 +122,19 @@ public:
 
 		switch(t) {
 			case INT8:
-				limitAddSub<char>(this->_value, nb);
+				limitAddSub<char>(this->_value, (nb * -1));
 				return reinterpret_cast<const IOperand *>(new Operand<char>(INT8, this->_value - nb));
 			case INT16:
-				limitAddSub<short>(this->_value, nb);
+				limitAddSub<short>(this->_value, (nb * -1));
 				return reinterpret_cast<const IOperand *>(new Operand<short>(INT16, this->_value - nb));
 			case INT32:
-				limitAddSub<int>(this->_value, nb);
+				limitAddSub<int>(this->_value, (nb * -1));
 				return reinterpret_cast<const IOperand *>(new Operand<int>(INT32, this->_value - nb));
 			case FLOAT:
-				limitAddSub<float>(this->_value, nb);
+				limitAddSub<float>(this->_value, (nb * -1));
 				return reinterpret_cast<const IOperand *>(new Operand<float>(FLOAT, this->_value - nb));
 			case DOUBLE:
-				limitAddSub<double>(this->_value, nb);
+				limitAddSub<double>(this->_value, (nb * -1));
 				return reinterpret_cast<const IOperand *>(new Operand<double>(DOUBLE, this->_value - nb));
 			case NB_TYPE:
 				return NULL;
@@ -227,12 +227,11 @@ public:
 		A min = std::numeric_limits<A>::min();
 
 		if ((a < 0) == (b < 0)) {		// Si a et b ont le meme signe
-			if (a < 0) {        		// Si a est negatif (rappel: a ce stade b a forcement le meme signe que a)
-
+			if (a < 0) {        		// a et b sont < a 0
 				if (std::fabs(b) > (std::fabs(min) - std::fabs(a)))
 					throw AbstractVm::AbstractVmException("Error: Operation will underflow");
 			}
-			else if (b > (max - a))		// Si b > x, ou x est ce qu'il manque à a pour atteindre le max
+			else if (b > (max - a))		// a et b sont > a 0 ; Si b > x, ou x est ce qu'il manque à a pour atteindre le max
 				throw AbstractVm::AbstractVmException("Error: Operation will overflow");
 		}
 	}

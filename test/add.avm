@@ -1,0 +1,11 @@
+;-------------
+;sample.avm -
+;-------------
+;
+push int32(21)
+push int32(42)
+push int32(33)
+dump
+add
+dump
+exit

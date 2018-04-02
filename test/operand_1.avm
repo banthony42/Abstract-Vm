@@ -1,0 +1,5 @@
+push int8(42)
+push int16(21)
+push int32(84)
+push float(21.21)
+push double(42.42)

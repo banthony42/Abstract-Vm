@@ -1,4 +1,7 @@
 *
+!test
+!error_test
+!*.avm
 !*.hpp
 !*.cpp
 !*.avm

@@ -73,18 +73,23 @@ static vector_vstr *get_script_by_stdin(void) {
 	vector_vstr *tab = new vector_vstr;
 	vector_vstr::const_iterator it;
 	vector_str::const_iterator tmp;
+	bool stop = false;
 	std::string buf;
 
 	while (std::cin.good()) {
 		getline(std::cin, buf);
 		if (!buf.empty())
 			tab->push_back(my_strsplit(buf));
-		if (tab->empty() == false) {
-			it = tab->end() -
-				 1;                                /* Recuperation du dernier vector_str (derniere entree utilisateur) */
-			tmp = find(it->begin(), it->end(),
-					   ";;");           /* Recherche de la séquence ";;" (Fin entree utilisateur) */
-			if (tmp != it->end())                               /* Si ";;" est trouvé on stop la saisi */
+
+		if (!tab->empty()) {
+			it = tab->end() - 1;		/* Recuperation du dernier vector_str (derniere entree utilisateur) */
+			tmp = it->begin();
+			while (tmp != it->end()) {
+				if ((*it)[0] == ";;" && (*it).size() == 1)	/* Recherche de la séquence ";;" (Fin entree utilisateur) */
+					stop = true;
+				tmp++;
+			}
+			if (stop)					/* Si ";;" est trouvé on stop la saisi */
 				break;
 		}
 	}
@@ -110,23 +115,11 @@ int main(int ac, char **av) {
 		return (0);
 	}
 
-	DEBUG("********************");
-	DEBUG("*** Abstract Vm ****");
-	DEBUG("********************\n");
-
 	try {
 		AbstractVm *avm = AbstractVm::getInstance();
 
-		DEBUG("********************");
-		DEBUG("*** Check Script ***");
-		DEBUG("********************");
-
 		avm->checkSyntax(*script);
-		DEBUG("======> OK! <=======\n");
 
-		DEBUG("********************");
-		DEBUG("*** Exec  Script ***");
-		DEBUG("********************\n");
 		avm->execScript(*script);
 		delete avm;
 	}
