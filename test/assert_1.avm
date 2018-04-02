@@ -1,0 +1,7 @@
+push double(32.3333)
+push float(32.3333)
+mul
+dump
+assert double(1045.44)
+dump
+exit
