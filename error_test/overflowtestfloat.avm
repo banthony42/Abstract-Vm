@@ -1,0 +1,6 @@
+push float(999999.9)
+push float(1)
+add
+dump
+push float(9999999)
+exit

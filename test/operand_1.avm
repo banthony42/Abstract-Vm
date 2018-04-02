@@ -3,3 +3,7 @@ push int16(21)
 push int32(84)
 push float(21.21)
 push double(42.42)
+push float(10)
+push double(0)
+dump
+exit
