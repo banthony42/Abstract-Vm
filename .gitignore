@@ -1,16 +1,10 @@
 *
 !test
 !error_test
-!*.avm
 !*.hpp
 !*.cpp
 !*.avm
 !.gitignore
 !src
-!obj
-!res
-!dep
 !include
-!*.config
 !Makefile
-!*.sh
