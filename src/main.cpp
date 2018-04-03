@@ -39,6 +39,12 @@
  *                                      tab[3].begin()      = exit
  */
 
+static std::string my_strtrim(std::string &str) {
+	while(str.size() && isspace(str.front()))
+		str.erase(str.begin());
+	return str;
+}
+
 /*
  * Separe une chaine de caractere sous forme de string, en fonction
  * des espaces et tabulations, qu'elle contient.
@@ -47,7 +53,7 @@
 static std::vector<std::string> my_strsplit(std::string str) {
 	std::vector<std::string> tab;
 	char *cstr = const_cast<char *>(str.c_str());
-	char *tmp;
+	char *tmp = NULL;
 
 	tmp = strtok(cstr, " \t");
 	while (tmp != NULL) {
@@ -65,12 +71,15 @@ static vector_vstr *get_script(char *filename) {
 	std::ifstream file;
 	std::string buf;
 	vector_vstr *script = new vector_vstr;
+	vector_str tmp;
 
 	file.open(filename, std::ifstream::in);
 	if (file.is_open()) {
 		while (getline(file, buf)) {
-			if (!buf.empty())
-				script->push_back(my_strsplit(buf));
+			if (!buf.empty()) {
+				if (!(buf = my_strtrim(buf)).empty())
+					script->push_back(my_strsplit(buf));
+			}
 		}
 		file.close();
 		return (script);
@@ -84,7 +93,7 @@ static vector_vstr *get_script(char *filename) {
  * La lecture de l'entrée standard s'arrête lorsque la séquence ";;" est trouvé.
  */
 static vector_vstr *get_script_by_stdin(void) {
-	vector_vstr *tab = new vector_vstr;
+	vector_vstr *script = new vector_vstr;
 	vector_vstr::const_iterator it;
 	vector_str::const_iterator tmp;
 	bool stop = false;
@@ -92,11 +101,13 @@ static vector_vstr *get_script_by_stdin(void) {
 
 	while (std::cin.good()) {
 		getline(std::cin, buf);
-		if (!buf.empty())
-			tab->push_back(my_strsplit(buf));
+		if (!buf.empty()) {
+			if (!(buf = my_strtrim(buf)).empty())
+				script->push_back(my_strsplit(buf));
+		}
 
-		if (!tab->empty()) {
-			it = tab->end() - 1;							/* Recup du dernier vector_str (derniere entree user) */
+		if (!script->empty()) {
+			it = script->end() - 1;							/* Recup du dernier vector_str (derniere entree user) */
 			tmp = it->begin();
 			while (tmp != it->end()) {
 				if ((*it)[0] == ";;" && (*it).size() == 1)	/* Recherche de la séquence ";;" (Fin entree utilisateur) */
@@ -107,7 +118,7 @@ static vector_vstr *get_script_by_stdin(void) {
 				break;
 		}
 	}
-	return (tab);
+	return (script);
 }
 
 int main(int ac, char **av) {

@@ -120,14 +120,12 @@ bool AbstractVm::parsing(vector_str line, std::string *message) {
  * En cas d'erreur, la fonction throw pour stoper l'execution.
  */
 void AbstractVm::checkSyntax(vector_vstr const script) {
-
 	vector_vstr::const_iterator it = script.begin();
 	std::string message;
 	bool exit = false;
 	bool err = true;
 	this->_line = 1;
 	while (it != script.end()) {
-
 		if (this->parsing(*it, &message) == false) {
 			ERROR(this->_line);
 			std::cerr << message << std::endl;

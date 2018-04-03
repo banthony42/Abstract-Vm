@@ -39,7 +39,7 @@
 
 /* Macro d'affichage */
 #define ERROR(i) std::cerr << "Line " << i << ": Error : ";
-#define DEBUG(str) std::cout << str << std::endl
+#define DEBUG(str) std::cout << "|" << str << "|" << std::endl
 
 class AbstractVm {
 
