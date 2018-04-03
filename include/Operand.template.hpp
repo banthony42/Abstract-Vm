@@ -36,9 +36,7 @@ public:
 /****************************/
 
 	Operand<T>(Operand<T> const &copy) { *this = copy; }	// Canonical
-
 	~Operand<T>() { } 										// Canonical
-
 	Operand<T> &operator=(Operand<T> const &copy)			// Canonical
 	{
 		if (this != &copy)
@@ -109,6 +107,8 @@ public:
 	IOperand const *operator-(IOperand const &rhs) const {
 		eOperandType t = (this->getType() > rhs.getType()) ? (this->getType()) : (rhs.getType());
 		double nb = std::stod(rhs.toString());
+
+		/* Changement de signe de nb, pour utiliser la meme fonction d'overflow */
 
 		switch(t) {
 			case INT8:
@@ -217,11 +217,11 @@ public:
 		A min = std::numeric_limits<A>::min();
 
 		if ((a < 0) == (b < 0)) {		// Si a et b ont le meme signe
-			if (a < 0) {        		// a et b sont < a 0
-				if (std::fabs(b) > (std::fabs(min) - std::fabs(a)))
+			if (a < 0) {        		// Et que a et b sont < a 0
+				if (std::fabs(b) > (std::fabs(min) - std::fabs(a)))	// Si b > x, ou x = Le reste pour que a atteigne le min
 					throw AbstractVm::AbstractVmException("Error: Operation will underflow");
 			}
-			else if (b > (max - a))		// a et b sont > a 0 ; Si b > x, ou x est ce qu'il manque à a pour atteindre le max
+			else if (b > (max - a))		// a et b sont > a 0 ; Si b > x, ou x = Le reste pour que a atteigne le max
 				throw AbstractVm::AbstractVmException("Error: Operation will overflow");
 		}
 	}
@@ -234,8 +234,7 @@ public:
 		if ((a < 0) == (b < 0)) {        				// Si a et b ont le meme signe
 			if (std::fabs(b) > (max / std::fabs(a)))	// si b est superieur a x, ou x * a = max
 				throw AbstractVm::AbstractVmException("Error: Operation will overflow");
-		}
-		// Sinon a et b ont un signe different, l'underflow est possible
+		}												// Sinon a et b ont un signe different, l'underflow est possible
 		else if (std::fabs(b) > (min / std::fabs(a)))	// si b est superieur a x, ou x * a = min
 			throw AbstractVm::AbstractVmException("Error: Operation will underflow");
 	}

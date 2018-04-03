@@ -39,6 +39,11 @@
  *                                      tab[3].begin()      = exit
  */
 
+/*
+ * Separe une chaine de caractere sous forme de string, en fonction
+ * des espaces et tabulations, qu'elle contient.
+ * Stock le resultat dans un vector de string, ou chaque element correspond a un split.
+ */
 static std::vector<std::string> my_strsplit(std::string str) {
 	std::vector<std::string> tab;
 	char *cstr = const_cast<char *>(str.c_str());
@@ -52,6 +57,10 @@ static std::vector<std::string> my_strsplit(std::string str) {
 	return (tab);
 }
 
+/*
+ * Ouvre le fichier recu en parametre du programme, le lis.
+ * Les lignes sont séparé par les espaces et tabulations, puis stocké dans un tableau de tableau.
+ */
 static vector_vstr *get_script(char *filename) {
 	std::ifstream file;
 	std::string buf;
@@ -69,6 +78,11 @@ static vector_vstr *get_script(char *filename) {
 	return (NULL);
 }
 
+/*
+ * Lis depuis l'entrée standard.
+ * Les lignes sont séparé par les espaces et tabulations, puis stocké dans un tableau de tableau.
+ * La lecture de l'entrée standard s'arrête lorsque la séquence ";;" est trouvé.
+ */
 static vector_vstr *get_script_by_stdin(void) {
 	vector_vstr *tab = new vector_vstr;
 	vector_vstr::const_iterator it;
@@ -82,14 +96,14 @@ static vector_vstr *get_script_by_stdin(void) {
 			tab->push_back(my_strsplit(buf));
 
 		if (!tab->empty()) {
-			it = tab->end() - 1;		/* Recuperation du dernier vector_str (derniere entree utilisateur) */
+			it = tab->end() - 1;							/* Recup du dernier vector_str (derniere entree user) */
 			tmp = it->begin();
 			while (tmp != it->end()) {
 				if ((*it)[0] == ";;" && (*it).size() == 1)	/* Recherche de la séquence ";;" (Fin entree utilisateur) */
 					stop = true;
 				tmp++;
 			}
-			if (stop)					/* Si ";;" est trouvé on stop la saisi */
+			if (stop)										/* Si ";;" est trouvé on stop la saisi */
 				break;
 		}
 	}
@@ -100,27 +114,22 @@ int main(int ac, char **av) {
 	vector_vstr *script = NULL;
 	vector_vstr::const_iterator it;
 
-	/***PARTIE LEXER: RECUP DU SCRIPT SPLIT PAR MOTS***/
-
 	if (ac > 1) {
-		if (!(script = get_script(av[1])))  /* Recup du programme dans le fichier */
+		if (!(script = get_script(av[1])))  /* Recup du programme via un fichier */
 			return (0);
 	} else
 		script = get_script_by_stdin();     /* Recup du programme via STDIN */
 
-
 	if (script->size() == 0) {              /* Stop si fichier vide */
 		DEBUG("File is empty.");
-		delete script;  /* Leaks ? (delete aussi le contenu ? ) */
+		delete script;
 		return (0);
 	}
 
 	try {
-		AbstractVm *avm = AbstractVm::getInstance();
-
-		avm->checkSyntax(*script);
-
-		avm->execScript(*script);
+		AbstractVm *avm = AbstractVm::getInstance();	/* Recuperation de la seule instance possible de avm */
+		avm->checkSyntax(*script);						/* Parsing, vérification de la syntaxe */
+		avm->execScript(*script);						/* Exécution du script */
 		delete avm;
 	}
 	catch(std::exception const &e) {
@@ -128,6 +137,5 @@ int main(int ac, char **av) {
 	}
 
 	delete script;
-
 	return (0);
 }

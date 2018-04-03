@@ -16,50 +16,49 @@
 #include <map>
 #include "IOperand.hpp"
 
-/* Explication breve des regex en fin de fichier */
-
 /* Utilisé pour la recuperation de la valeur, ex:"double(42.42)" -> 42.42 */
 #define REGEX_INTEGER "([-]?\\d+).*?([-]?\\d+)"
 #define REGEX_DECIMAL "[-]?\\d+([.]\\d+)?"
 
-/* Utilisé pour verifier la syntaxe */
-#define REGEX_CMDLIST "^(pop|dump|add|sub|mul|div|mod|print|exit){1}((?=;)(.+))?"	/* Liste des commandes disponible */
+/* Utilisé pour verifier la validité d'une commande */
+#define REGEX_CMDLIST "^(pop|dump|add|sub|mul|div|mod|print|exit){1}((?=;)(.+))?"
 #define REGEX_CMDLIST_2 "^(push|assert){1}$"
-#define REGEX_INTVALUE "^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+[\\)]((?=;)(.+))?"				/* Definit la grammaire d'un parametre de type entier */
-#define REGEX_DECIMALVALUE "^((float|double)\\(){1}([-]?[0-9]+([.][0-9]+)?)[\\)]((?=;)(.+))?"		/* Definit la grammaire d'un parametre de type decimal */
+
+/* Définit la grammaire d'un paramètre de type entier */
+#define REGEX_INTVALUE "^(int((8)|(16)|(32))\\(){1}[-]?[0-9]+[\\)]((?=;)(.+))?"
+
+/* Deéfinit la grammaire d'un paramètre de type décimal */
+#define REGEX_DECIMALVALUE "^((float|double)\\(){1}([-]?[0-9]+([.][0-9]+)?)[\\)]((?=;)(.+))?"
 
 /* Utilisé pour savoir avec quel type on travail */
-#define REGEX_INT8 "^(int(8)\\(){1}[-]?[0-9]+[\\)]((?=;)(.+))?"								/* Definit la grammaire d'un parametre pour chaque type */
+#define REGEX_INT8 "^(int(8)\\(){1}[-]?[0-9]+[\\)]((?=;)(.+))?"
 #define REGEX_INT16 "^(int(16)\\(){1}[-]?[0-9]+[\\)]((?=;)(.+))?"
 #define REGEX_INT32 "^(int(32)\\(){1}[-]?[0-9]+[\\)]((?=;)(.+))?"
 #define REGEX_FLOAT "^(float\\(){1}[-]?[0-9]+([.][0-9]+)?[\\)]((?=;)(.+))?"
 #define REGEX_DOUBLE "^(double\\(){1}[-]?[0-9]+([.][0-9]+)?[\\)]((?=;)(.+))?"
 
+/* Macro d'affichage */
 #define ERROR(i) std::cerr << "Line " << i << ": Error : ";
-
-#define DEBUGVAR(str, var) std::cout << str << var << std::endl
 #define DEBUG(str) std::cout << str << std::endl
 
 class AbstractVm {
 
 public:
-	AbstractVm(AbstractVm const &copy);				// Canonical
-	~AbstractVm();									// Canonical
-	AbstractVm &operator=(AbstractVm const &copy);	// Canonical
-
 	typedef IOperand const *(AbstractVm::*createFuncPtr)(std::string const &);
 	typedef std::vector < createFuncPtr >	factory;
 
 	typedef void(AbstractVm::*cmdFuncPtr)(IOperand const *);
 	typedef std::map < std::string, cmdFuncPtr >	mapped_command;
 
+	AbstractVm(AbstractVm const &copy);				// Canonical
+	~AbstractVm();									// Canonical
+	AbstractVm &operator=(AbstractVm const &copy);	// Canonical
+
 	static AbstractVm *getInstance(void);
 	IOperand const * createOperand( eOperandType type, std::string const & value );
 
 	void execScript(vector_vstr const script);
 	void checkSyntax(vector_vstr const script);
-
-	IOperand const * popBack(void);
 
 	/****************************/
 	/***_AbstractVm Exception_***/
@@ -82,14 +81,16 @@ public:
 
 private:
 	const factory					_operandCreator;		// Factory
-	const mapped_command			_commandList;			// Association d'une string a une commande
+	const mapped_command			_commandList;			// Association d'une string à une commande
 	std::vector<IOperand const *>	_stack;					// Stack
 	static AbstractVm *				_singleton;				// Gestion instance unique
 	unsigned int					_line;					// Ligne d'execution courante
 
-	AbstractVm();										// Canonical
+	AbstractVm();											// Canonical
 	const mapped_command createMap();
 	const factory makeFactory();
+
+	IOperand const * popBack(void);
 
 	bool parsing(vector_str line, std::string *message);
 

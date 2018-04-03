@@ -19,6 +19,11 @@
 /****_INITIALIZATION_****/
 /************************/
 
+/*
+ * Initialisation de la factory,
+ * Les fonctions sont rangées dans le tableau, de manière à ce que leurs valeurs
+ * dans l'enum eOperand, corresponde a leurs index.
+ */
 const AbstractVm::factory AbstractVm::makeFactory() {
 	AbstractVm::factory f;
 
@@ -30,6 +35,10 @@ const AbstractVm::factory AbstractVm::makeFactory() {
 	return f;
 }
 
+/*
+ * Initialisation de la map
+ * Chaque fonctions de commandes, sont associées à leur string.
+ */
 const AbstractVm::mapped_command AbstractVm::createMap() {
 	AbstractVm::mapped_command m;
 
@@ -48,16 +57,15 @@ const AbstractVm::mapped_command AbstractVm::createMap() {
 	return m;
 }
 
-AbstractVm *AbstractVm::_singleton = NULL;        /* Initialisation de la singleton a NULL */
+/*
+ * Initialisation de la singleton a NULL
+ */
+AbstractVm *AbstractVm::_singleton = NULL;
 
 /************************/
 /*******_FUNCTION_*******/
 /************************/
-/*
-for (unsigned long long i = 0; i < cm.size(); ++i) {
-DEBUG(cm[i]);
-}
-*/
+
 bool AbstractVm::parsing(vector_str line, std::string *message) {
 
 	std::smatch cm;
@@ -66,35 +74,39 @@ bool AbstractVm::parsing(vector_str line, std::string *message) {
 	std::regex integer_value(REGEX_INTVALUE);
 	std::regex decimal_value(REGEX_DECIMALVALUE);
 
-	if (line[0][0] == ';')    /* Si commentaire on passe */
+	if (line[0][0] == ';')    /* Si la ligne est un commentaire on passe */
 		return true;
 
-	/* Test parmis la liste des commandes disponnible	*/
+	/* Test parmis la liste des commandes disponnible */
 	if (std::regex_match(line[0], cmdList) == false && std::regex_match(line[0], cmdList2) == false) {
-		*message = "Command not found";		/* Si aucune n'est trouvé, erreur */
+		*message = "Command not found";
 		return false;
 	}
 
-	if (line[0] == "push" || line[0] == "assert") {    /* Commandes qui necessitent un argument en parametre */
+	/* Commandes qui necessitent un argument en parametre */
+	if (line[0] == "push" || line[0] == "assert") {
 
 		std::string const value(line[1]);
 
-		if (std::regex_match(line[1], integer_value) == false) {        /* Test si VALUE == intXX(XX)				*/
+		if (std::regex_match(line[1], integer_value) == false) {        /* Test si VALUE == intXX(XX) */
 
-			if (std::regex_match(line[1], decimal_value) == false) {    /* Test si VALUE == float/double(XX.XX)		*/
+			if (std::regex_match(line[1], decimal_value) == false) {    /* Test si VALUE == float/double(XX.XX) */
 				*message = "Syntax error";
-				return false;                                            /* Si aucun pattern n'est trouvé, erreur	*/
+				return false;
 			}
 		}
 
-		if (line.size() > 2 && (line[2][0] != ';' && (line[1].find_first_of(';') == std::string::npos))) {        /* Si la ligne comporte plusieurs mots et que le troisieme ne commence pas par ; */
-			*message = "Too many argument 1";                /* un commentaires, alors erreur. */
+		/* Si la ligne comporte plusieurs mots et que le troisieme ne commence pas par ; */
+		if (line.size() > 2 && (line[2][0] != ';' && (line[1].find_first_of(';') == std::string::npos))) {
+			*message = "Too many argument 1";
 			return false;
 		}
-	} else {    /* Commandes qui n'ont aucun parametre */
+	}
+	else {    /* Meme vérification pour les commandes qui n'ont aucun parametre */
 
-		if (line.size() > 1 && (line[1][0] != ';' && (line[0].find_first_of(';') == std::string::npos))) {        /* Si la ligne comporte plusieurs mots et que le second ne commence pas par ; */
-			*message = "Too many argument 2";                /* un commentaires, alors erreur. */
+		/* Si la ligne comporte plusieurs mots et que le second ne commence pas par ; */
+		if (line.size() > 1 && (line[1][0] != ';' && (line[0].find_first_of(';') == std::string::npos))) {
+			*message = "Too many argument 2";
 			return false;
 		}
 	}
@@ -102,6 +114,11 @@ bool AbstractVm::parsing(vector_str line, std::string *message) {
 	return true;
 }
 
+/*
+ * Verifie chaque ligne du tableau contenant le script
+ * Notification à l'utilisateur pour chaque erreur rencontrée.
+ * En cas d'erreur, la fonction throw pour stoper l'execution.
+ */
 void AbstractVm::checkSyntax(vector_vstr const script) {
 
 	vector_vstr::const_iterator it = script.begin();
@@ -116,6 +133,7 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 			std::cerr << message << std::endl;
 			err = false;
 		}
+		/* Test la présence de la commande exit dans le script */
 		if (!exit && std::regex_match((*it)[0], std::regex("exit((?=;)(.+))?")))
 			exit = true;
 		this->_line++;
@@ -130,7 +148,9 @@ void AbstractVm::checkSyntax(vector_vstr const script) {
 		throw AbstractVm::AbstractVmException("Program stopped.");
 }
 
-/* Aide rappel
+/*
+ * Parcours du script et execution
+ * Aide rappel
  * (*it)		= vecteur de string, (correspond a une ligne issue d'un split suivant espaces, tab)
  * (*it)[0]		= premier mot de la ligne (*it)
  * (*it)[0][0]	= premier caractere du premier mot de la ligne (*it)

@@ -18,8 +18,11 @@
 
 #include <iostream>
 
-typedef std::vector<std::vector<std::string> > vector_vstr;
+/* Représente une ligne, split en plusieurs mots */
 typedef std::vector<std::string> vector_str;
+
+/* Représente un ensemble de lignes */
+typedef std::vector< vector_str > vector_vstr;
 
 enum eOperandType {
 	INT8, INT16, INT32, FLOAT, DOUBLE, NB_TYPE
