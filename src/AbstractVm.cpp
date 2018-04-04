@@ -200,8 +200,8 @@ void AbstractVm::execScript(vector_vstr const script) {
 			else							/* si la ligne ne comporte qu'un mot, alors on traite une commande simple */
 				(this->*funcPointer)(NULL);
 		}
-		if ((*it)[0] == "exit")	// Si la commande est exit, on arrete l'execution
-			return ;
+		if ((*it)[0] == "exit") // Si la commande est exit, on arrete l'execution
+			return;
 		this->_line++;
 		it++;
 	}
@@ -241,43 +241,29 @@ IOperand const *AbstractVm::createInt8(std::string const &value) {
 	int nb = std::stoi(value);
 	if (nb < INT8_MIN || nb > INT8_MAX)
 		throw AbstractVm::AbstractVmException("INT8: Out of range");
-
-	IOperand *op = new Operand<char>(INT8, nb);
-	return op;
+	return (new Operand<char>(INT8, nb));
 }
 
 IOperand const *AbstractVm::createInt16(std::string const &value) {
 	int nb = std::stoi(value);
 	if (nb < INT16_MIN || nb > INT16_MAX)
 		throw AbstractVm::AbstractVmException("INT16: Out of range");
-
-	IOperand *op = new Operand<short>(INT16, nb);
-	return op;
+	return (new Operand<short>(INT16, nb));
 }
 
 IOperand const *AbstractVm::createInt32(std::string const &value) {
 	int nb = std::stoi(value);
 	if (nb < INT32_MIN || nb > INT32_MAX)
 		throw AbstractVm::AbstractVmException("INT32: Out of range");
-
-	IOperand *op = new Operand<int>(INT32, nb);
-	return op;
+	return (new Operand<int>(INT32, nb));
 }
 
 IOperand const *AbstractVm::createFloat(std::string const &value) {
-
-		float nb = std::stof(value);
-
-		IOperand *op = new Operand<float>(FLOAT, nb);
-		return op;
+		return (new Operand<float>(FLOAT, std::stof(value)));
 }
 
 IOperand const *AbstractVm::createDouble(std::string const &value) {
-
-		double nb = std::stod(value);
-
-		IOperand *op = new Operand<double>(DOUBLE, nb);
-		return op;
+		return (new Operand<double>(DOUBLE, std::stod(value)));
 }
 
 /****STACK_COMMAND****/
@@ -314,7 +300,6 @@ void AbstractVm::dump(IOperand const *operand) {
 	while (it != this->_stack.begin()) {
 		it--;
 		std::cout << (*it)->toString() << std::endl;
-
 	}
 	(void)(operand);
 }

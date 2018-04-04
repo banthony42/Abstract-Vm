@@ -1,0 +1,7 @@
+push float(42)
+push float(42.42)
+dump
+mul
+dump
+assert float(1781.64)
+exit

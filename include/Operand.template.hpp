@@ -25,6 +25,8 @@ private:
 	eOperandType	_type;
 	std::string		_str;
 	T				_value;
+
+private:
 	int				_precision;
 
 	Operand<T>() {	} // Canonical
@@ -41,10 +43,8 @@ public:
 	{
 		if (this != &copy)
 		{
-			std::ostringstream convert;
 			this->_type = copy.getType();
-			convert << copy._value;
-			this->_str = convert.str();
+			this->_str = copy.toString();
 			this->_value = copy._value;
 			this->_precision = copy.getPrecision();
 			return *this;
@@ -58,8 +58,25 @@ public:
 	Operand<T>(eOperandType const type, T const val): _type(type), _value(val), _precision(type) {
 
 		std::ostringstream convert;
-		convert << static_cast<double>(this->_value);
-		this->_str = convert.str();
+		switch(type) {
+			case INT8:
+				this->_str = std::to_string(this->_value);
+				break ;
+			case INT16:
+				this->_str = std::to_string(this->_value);
+				break ;
+			case INT32:
+				this->_str = std::to_string(this->_value);
+				break ;
+			case FLOAT:
+				this->_str = std::to_string(this->_value);
+				break ;
+			case DOUBLE:
+				this->_str = std::to_string(this->_value);
+				break ;
+			case NB_TYPE:
+				break ;
+		}
 	}
 
 	int getPrecision(void) const {

@@ -1,0 +1,7 @@
+push int16(42)
+push double(12.98654)
+dump
+mul
+dump
+assert double(545.43468)
+exit
